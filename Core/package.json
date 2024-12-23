@@ -1,0 +1,9 @@
+{
+    "name": "com.Midnite Oil Software LLC.Core",
+    "version": "1.0.0",
+    "displayName": "Core Components",
+    "description": "Common components that I use often.",
+    "unity": "2021.3",
+    "dependencies": {}
+  }
+  
