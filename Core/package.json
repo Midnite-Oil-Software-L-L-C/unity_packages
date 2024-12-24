@@ -9,12 +9,18 @@
       "url": "https://github.com/Midnite-Oil-Software-L-L-C"
     },
     "license": "MIT",
-    "dependencies": {
-      },
+    "dependencies": {},
     "keywords": [
-    "core",
-    "midniteoilsoftware"
+      "core",
+      "midniteoilsoftware"
     ],
-    "documentationUrl": "https://github.com/Midnite-Oil-Software-L-L-C/unity_packages"
+    "documentationUrl": "https://github.com/Midnite-Oil-Software-L-L-C/unity_packages",
+    "samples": [
+      {
+        "displayName": "Demo Scenes",
+        "description": "Example demo scenes for the package.",
+        "path": "Samples~"
+      }
+    ]
   }
   
