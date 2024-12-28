@@ -9,7 +9,9 @@
       "url": "https://github.com/Midnite-Oil-Software-L-L-C"
     },
     "license": "MIT",
-    "dependencies": {},
+    "dependencies": {
+      "com.unity.textmeshpro": "3.2.0"
+    },
     "keywords": [
       "core",
       "midniteoilsoftware"
@@ -18,7 +20,7 @@
     "samples": [
       {
         "displayName": "Demo Scenes",
-        "description": "Example demo scenes for the package.",
+        "description": "Example scenes showing how to use the core components.",
         "path": "Samples~"
       }
     ]
