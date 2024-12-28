@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MidniteOilSoftware.Core.Music
 {
-    [CreateAssetMenu(fileName = "MusicClipGroup", menuName = "Midnite Oil Software/Music Clip Group")]
+    [CreateAssetMenu(fileName = "MusicClipGroup", menuName = "Midnite Oil Software/Core/Create Music Clip Group")]
     public class MusicClipGroup : ScriptableObject
     {
         [SerializeField] string _groupName;

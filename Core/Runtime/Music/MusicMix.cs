@@ -3,7 +3,7 @@ using UnityEngine.Audio;
 
 namespace MidniteOilSoftware.Core.Music
 {
-    [CreateAssetMenu(fileName = "MusicMix", menuName = "Midnite Oil Software/Music Mix")]
+    [CreateAssetMenu(fileName = "MusicMix", menuName = "Midnite Oil Software/Core/Create Music Mix")]
     public class MusicMix : ScriptableObject
     {
         [SerializeField] AudioMixerGroup _mixerGroup;
