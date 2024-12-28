@@ -15,6 +15,12 @@
       "midniteoilsoftware"
     ],
     "documentationUrl": "https://github.com/Midnite-Oil-Software-L-L-C/unity_packages",
-    "samples": []
+    "samples": [
+      {
+        "displayName": "Demo Scenes",
+        "description": "Example demo scenes for the package.",
+        "path": "Samples~"
+      }
+    ]
   }
   
