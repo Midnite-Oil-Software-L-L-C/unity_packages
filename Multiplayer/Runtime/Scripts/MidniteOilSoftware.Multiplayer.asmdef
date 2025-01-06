@@ -1,0 +1,27 @@
+{
+    "name": "MidniteOilSoftware.Multiplayer",
+    "rootNamespace": "",
+    "references": [
+        "GUID:9ea0d269c3c6e434ab61e9eaa10f2372",
+        "GUID:1491147abca9d7d4bb7105af628b223e",
+        "GUID:fe25561d224ed4743af4c60938a59d0b",
+        "GUID:4c3f49d89436d478ea78315c03159dcc",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:4fc462806a32aa245a7b28367381bf24",
+        "GUID:5540e30183c82e84b954c033c388e06c",
+        "GUID:e0cd26848372d4e5c891c569017e11f1",
+        "GUID:f2d49d9fa7e7eb3418e39723a7d3b92f",
+        "GUID:03058786646e84a4587858e9302c3f41",
+        "GUID:75469ad4d38634e559750d17036d5f7c",
+        "GUID:767f25efd20d4339a8b1683f8dc1d7d8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

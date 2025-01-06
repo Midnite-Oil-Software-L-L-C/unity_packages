@@ -1,0 +1,35 @@
+{
+  "name": "com.midniteoilsoftware.multiplayer",
+  "version": "1.0.0",
+  "displayName": "Midnite Oil Software Multiplayer Boilerplate",
+  "description": "Boilerplate for making multiplayer games Midnite Oil Software Unity projects using Unity, Netcode for GameObjects, Lobby and Relay.",
+  "category":"Utility",
+  "unity": "6000.0",
+  "author": {
+    "name": "Midnite Oil Software L.L.C.",
+    "url": "https://github.com/Midnite-Oil-Software-L-L-C"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.unity.inputsystem": "1.11.2",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.netcode.gameobjects": "2.0.0",
+    "com.unity.services.lobby": "1.2.2",
+    "com.unity.services.multiplay": "1.2.5",
+    "com.unity.multiplayer.playmode": "1.3.2",
+    "com.unity.services.relay": "1.1.1"
+  },
+  "keywords": [
+    "multiplayer",
+    "midniteoilsoftware"
+  ],
+  "documentationUrl": "https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/Multiplayer",
+  "samples": [
+    {
+      "displayName": "Demo Scenes",
+      "description": "Example scenes showing how to setup a basic lobby.",
+      "path": "Samples~"
+    }
+  ]
+}
+  
