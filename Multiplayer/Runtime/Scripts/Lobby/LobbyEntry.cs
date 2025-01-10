@@ -25,7 +25,8 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _name.SetText(lobby.Name);
             _playerCount.SetText(lobby.Players.Count + " / " + lobby.MaxPlayers);
 
-            if (_lobby.Id == LobbyManager.Instance.CurrentLobby?.Id)
+            if (_lobby.Id == LobbyManager.Instance.CurrentLobby?.Id ||
+                _lobby.AvailableSlots < 1)
             {
                 _joinButton.interactable = false;
             }

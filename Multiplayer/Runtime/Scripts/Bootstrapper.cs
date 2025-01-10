@@ -29,9 +29,9 @@ namespace MidniteOilSoftware.Multiplayer
                 await SceneManager.LoadSceneAsync("Bootstrapper", LoadSceneMode.Single);
             }
 
-            if (SceneManager.GetSceneByName("User Interface").IsValid() == true) return;
+            if (SceneManager.GetSceneByName("Main Menu").IsValid() == true) return;
             Debug.Log("Loading UI scene additively");
-            await SceneManager.LoadSceneAsync("User Interface", LoadSceneMode.Additive);
+            await SceneManager.LoadSceneAsync("Main Menu", LoadSceneMode.Additive);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace MidniteOilSoftware.Multiplayer
         public string GetName(ulong connectionId) =>
             PlayerConnectionsToNames.GetValueOrDefault(connectionId, "Unknown");
 
-        readonly Dictionary<string, GamePlayer> _playerConnections = new();
+        readonly Dictionary<string, NetworkPlayer> _playerConnections = new();
 
         void Start()
         {
@@ -94,7 +94,7 @@ namespace MidniteOilSoftware.Multiplayer
             Debug.Log("Client Started");
         }
 
-        public void RegisterPlayerAndRemoveDuplicates(GamePlayer networkPlayer)
+        public void RegisterPlayerAndRemoveDuplicates(NetworkPlayer networkPlayer)
         {
             if (_playerConnections.TryGetValue(networkPlayer.PlayerName.Value.Value, out var existingPlayer))
             {

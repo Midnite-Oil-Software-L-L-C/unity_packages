@@ -1,8 +1,8 @@
 using System;
 using MidniteOilSoftware.Core;
+using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.UI;
 using TMPro;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -30,6 +30,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _startingGamePanel.SetActive(false);
             SubscribeToButtonHandlers();
             SubscribeToLobbyEvents();
+            SubscribeToGameEvents();
             InitializeRefreshTimer();
         }
 
@@ -55,6 +56,16 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             });
             _renameGameButton.onClick.AddListener(EditGameName);
             _startGameButton.onClick.AddListener(TryStartGame);
+        }
+        
+        void SubscribeToGameEvents()
+        {
+            EventBus.Instance.Subscribe<GameStateChangedEvent>(HandleGameStateChanged);
+        }
+        
+        void UnsuscribeFromGameEvents()
+        {
+            EventBus.Instance.Unsubscribe<GameStateChangedEvent>(HandleGameStateChanged);
         }
 
         void UnsubscribeFromButtonHandlers()
@@ -130,6 +141,20 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         #endregion
 
+        #region Game events
+        void HandleGameStateChanged(GameStateChangedEvent e)
+        {
+            switch (e.NewState)
+            {
+                case GameState.GameStarted:
+                case GameState.WaitingForPlayers:
+                case GameState.PlayerTurnStart:
+                    gameObject.SetActive(false);
+                    break;
+            }
+        }
+        #endregion Game events
+        
         #region Button events
 
         void EditGameName()

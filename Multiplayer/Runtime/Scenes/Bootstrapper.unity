@@ -290,10 +290,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  Scenes:
-  - {fileID: 102900000, guid: 1070d0fcdc24d72468d541a7d4d85b54, type: 3}
-  SceneNames:
-  - Game
+  _scenes: []
+  _sceneNames: []
 --- !u!4 &503695636
 Transform:
   m_ObjectHideFlags: 0
@@ -353,6 +351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a422caba06ddc4a4bb7c11ba6e85891b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxPlayers: 2
 --- !u!1 &848142707
 GameObject:
   m_ObjectHideFlags: 0
@@ -548,9 +547,10 @@ MonoBehaviour:
   NetworkConfig:
     ProtocolVersion: 0
     NetworkTransport: {fileID: 1702304909}
-    PlayerPrefab: {fileID: 4698515073495184177, guid: 87f591b18c238d445b126fad1d441828, type: 3}
+    PlayerPrefab: {fileID: 8323705925053639660, guid: a37cdf9b214f96a48ad449d7a4e597b7, type: 3}
     Prefabs:
-      NetworkPrefabsLists: []
+      NetworkPrefabsLists:
+      - {fileID: 11400000, guid: cf9eff9cbbef6694ca2593fe64c8477e, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0

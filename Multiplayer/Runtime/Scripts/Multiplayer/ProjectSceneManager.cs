@@ -64,7 +64,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             Debug.Log("Loading Game Scene");
 
-            StartCoroutine(LoadSceneAsync("Reversi"));
+            StartCoroutine(LoadSceneAsync("Othello"));
         }
 
         void LogSceneEvent(SceneEvent sceneEvent)
@@ -85,7 +85,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             Debug.Log("Doing Verification for " + sceneName +
                       " (filtering out UserInterface, everything else passes verification");
 
-            return sceneName != "User Interface";
+            return sceneName != "Main Menu";
         }
 
         public void LoadScene(string trackName) => StartCoroutine(LoadSceneAsync(trackName));
@@ -107,11 +107,11 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             string sceneName, 
             LoadSceneMode loadSceneMode)
         {
-            if (sceneName.Equals("Game") == false)
+            if (sceneName.Equals("Reversi") == false)
                 return;
 
             var playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
-            var player = playerNetworkObject.GetComponent<GamePlayer>();
+            var player = playerNetworkObject.GetComponent<NetworkPlayer>();
             var playerName = player.PlayerName.Value.Value;
             var playerId = player.PlayerId.Value.Value;
         }

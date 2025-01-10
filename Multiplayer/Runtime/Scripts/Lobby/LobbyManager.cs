@@ -17,6 +17,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 {
     public class LobbyManager : SingletonMonoBehaviour<LobbyManager>
     {
+        [SerializeField] int _maxPlayers = 4;
         public Unity.Services.Lobbies.Models.Lobby CurrentLobby { get; private set; }
 
         float _lastLobbyRefreshTime;
@@ -48,7 +49,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             };
             CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(
                 AuthenticationService.Instance.Profile + "'s Game",
-                4,
+                _maxPlayers,
                 options);
 
             await UpdatePlayerLobbyData(true);
@@ -144,9 +145,35 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         public async Task RequestStartGame()
         {
-            var relayCode = await GetRelayAllocation();
-            await PlayerConnectionsManager.Instance.StartHostOnServer();
-            await SetLobbyRelayCode(relayCode);
+            string relayCode = null;
+            try
+            {
+                relayCode = await GetRelayAllocation();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error getting relay allocation. {e}");
+                return;
+            }
+
+            try
+            {
+                await PlayerConnectionsManager.Instance.StartHostOnServer();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error starting host. {e}");
+                return;
+            }
+
+            try
+            {
+                await SetLobbyRelayCode(relayCode);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error setting relay code. {e}");
+            }
         }
 
         void Update()

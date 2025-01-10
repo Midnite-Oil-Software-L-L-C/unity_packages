@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MidniteOilSoftware.Multiplayer
 {
-    public class GamePlayer : NetworkBehaviour
+    public class NetworkPlayer : NetworkBehaviour
     {
         public ulong ConnectionId => OwnerClientId;
         public NetworkVariable<FixedString32Bytes> PlayerId;

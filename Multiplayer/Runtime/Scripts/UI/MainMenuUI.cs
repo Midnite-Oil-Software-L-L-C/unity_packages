@@ -1,3 +1,4 @@
+using System;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using TMPro;
@@ -8,7 +9,7 @@ using UnityEngine.UI;
 
 namespace MidniteOilSoftware.Multiplayer.UI
 {
-    public class MainMenuUI : MonoBehaviour//SingletonMonoBehaviour<MainMenuUI>
+    public class MainMenuUI : MonoBehaviour
     {
         [Header("Panels")] [SerializeField] GameObject _mainMenuUI, _loginPanel;
         [SerializeField] LobbyListPanel _lobbyPanel;
@@ -19,10 +20,8 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         [SerializeField] TMP_InputField _passwordInput;
 
-        [Header("Text Fields")] [SerializeField]
-        TMP_Text _playerIdText;
-
-        [SerializeField] TMP_Text _statusText;
+        [Header("Text Fields")] 
+        [SerializeField] TMP_Text _playerIdText ,_statusText, _gameNameText;
 
         [Header("Buttons")] [SerializeField] Button _loginButton;
         [SerializeField] Button _registerButton;
@@ -36,6 +35,11 @@ namespace MidniteOilSoftware.Multiplayer.UI
             _currentLobbyPanel.gameObject.SetActive(false);
             LobbyManager.Instance.OnJoinedLobby += ShowCurrentLobby;
             LobbyManager.Instance.OnLeftLobby += ShowLobbyPanel;
+        }
+
+        void LateUpdate()
+        {
+            _gameNameText.SetText(LobbyManager.Instance.CurrentLobby?.Name ?? string.Empty);
         }
 
         void SetupAuthentication()
