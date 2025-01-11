@@ -9,6 +9,7 @@ using Unity.Networking.Transport;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
+using Unity.Services.Multiplayer;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -384,7 +385,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         async Task SetRelayClientData(string relayCode)
         {
             var transport = NetworkManager.Singleton.GetComponentInChildren<UnityTransport>();
-            var joinAllocation = await Relay.Instance.JoinAllocationAsync(relayCode);
+            var joinAllocation = await RelayService.Instance.JoinAllocationAsync(relayCode);
 
             var endpoint = GetEndpointForAllocation(
                 joinAllocation.ServerEndpoints,
@@ -406,8 +407,12 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         async Task<string> GetRelayAllocation()
         {
-            var allocation = await Relay.Instance.CreateAllocationAsync(CurrentLobby.MaxPlayers);
-            var relayCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
+            // Use the first region as an example and create the Relay allocation
+            var regions = await RelayService.Instance.ListRegionsAsync();
+            var region = regions[0].Id;
+            
+            var allocation = await RelayService.Instance.CreateAllocationAsync(CurrentLobby.MaxPlayers, region);
+            var relayCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
 
             var endpoint = GetEndpointForAllocation(
                 allocation.ServerEndpoints,
@@ -449,14 +454,12 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             int port,
             out bool isSecure)
         {
-#if ENABLE_MANAGED_UNITYTLS
+#if ENABLE_MANAGED_UNITYTLS && !UNITY_WEBGL
             foreach (RelayServerEndpoint endpoint in endpoints)
             {
-                if (endpoint.Secure && endpoint.Network == RelayServerEndpoint.NetworkOptions.Udp)
-                {
-                    isSecure = true;
-                    return NetworkEndpoint.Parse(endpoint.Host, (ushort)endpoint.Port);
-                }
+                if (!endpoint.Secure || endpoint.Network != RelayServerEndpoint.NetworkOptions.Udp) continue;
+                isSecure = true;
+                return NetworkEndpoint.Parse(endpoint.Host, (ushort)endpoint.Port);
             }
 #endif
             isSecure = false;

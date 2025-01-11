@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Unity.Netcode;
 using UnityEditor;
@@ -14,33 +13,25 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
     {
         bool _unloading;
         string _scene;
+        Scene _currentScene;
 
 
 #if UNITY_EDITOR
-        [SerializeField] List<SceneAsset> _scenes;
+        [SerializeField] SceneAsset _menuScene, _gameScene;
 
         void OnValidate()
         {
-            _sceneNames = _scenes.Select(s => s.name).ToList();
+            _menuSceneName = _menuScene.name;
+            _gameSceneName = _gameScene.name;
         }
 #endif
-        [SerializeField] List<string> _sceneNames;
+        [SerializeField] string _menuSceneName, _gameSceneName;
 
         public bool IsLoading { get; private set; }
-
-        public Scene CurrentScene => GetCurrentScene().Item1;
 
         void Start()
         {
             NetworkManager.Singleton.OnServerStarted += SetupSceneManagementAndLoadGameScene;
-        }
-
-        void ListScenes()
-        {
-            for (int i = 0; i < SceneManager.sceneCount; i++)
-            {
-                Debug.Log(SceneManager.GetSceneAt(i).name);
-            }
         }
 
         [ContextMenu(nameof(SetupSceneManagementAndLoadGameScene))]
@@ -64,7 +55,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             Debug.Log("Loading Game Scene");
 
-            StartCoroutine(LoadSceneAsync("Othello"));
+            StartCoroutine(LoadSceneAsync(_gameSceneName));
         }
 
         void LogSceneEvent(SceneEvent sceneEvent)
@@ -88,7 +79,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             return sceneName != "Main Menu";
         }
 
-        public void LoadScene(string trackName) => StartCoroutine(LoadSceneAsync(trackName));
+        public void LoadScene(string sceneName) => StartCoroutine(LoadSceneAsync(sceneName));
 
         IEnumerator LoadSceneAsync(string sceneName = default)
         {
@@ -107,7 +98,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             string sceneName, 
             LoadSceneMode loadSceneMode)
         {
-            if (sceneName.Equals("Reversi") == false)
+            if (sceneName.Equals(_gameSceneName) == false)
                 return;
 
             var playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
@@ -123,18 +114,16 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             Debug.Log(
                 $"HandleLoadEventCompletedForAllPlayers {sceneName} {loadSceneMode} Completed:{clientsCompleted.Count} TimedOut:{clientsTimedOut.Count}");
             IsLoading = false;
-            // NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= HandleLoadEventCompletedForAllPlayers;
-            ListScenes();
         }
 
         Tuple<Scene, string> GetCurrentScene()
         {
             for (var i = 0; i < SceneManager.loadedSceneCount; i++)
             {
-                var currentScene = SceneManager.GetSceneAt(i);
-                _scene = _sceneNames.FirstOrDefault(t => t == currentScene.name);
-                if (_scene != null)
-                    return new Tuple<Scene, string>(currentScene, _scene);
+                var scene = SceneManager.GetSceneAt(i);
+                if (scene.name != _gameSceneName) continue;
+                _currentScene = scene;
+                return new Tuple<Scene, string>(_currentScene, _currentScene.name);
             }
 
             return default;
@@ -158,7 +147,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 yield return null;
         }
 
-        void UnloadComplete(ulong clientid, string scenename)
+        void UnloadComplete(ulong clientId, string sceneName)
         {
             NetworkManager.SceneManager.OnUnloadComplete -= UnloadComplete;
             _unloading = false;

@@ -1,11 +1,8 @@
-using System;
-using System.Threading.Tasks;
 using TMPro;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace MidniteOilSoftware.Multiplayer.Lobby
@@ -90,7 +87,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
 
             _kickPlayerButton.gameObject.SetActive(false);
-            await Lobbies.Instance.RemovePlayerAsync(lobbyId, Player.Id);
+            await LobbyService.Instance.RemovePlayerAsync(lobbyId, Player.Id);
         }
 
         async void OnPlayerReadyClicked()

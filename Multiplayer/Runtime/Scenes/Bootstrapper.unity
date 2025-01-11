@@ -290,8 +290,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  _scenes: []
-  _sceneNames: []
+  _menuScene: {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+  _gameScene: {fileID: 102900000, guid: 1070d0fcdc24d72468d541a7d4d85b54, type: 3}
+  _menuSceneName: Main Menu
+  _gameSceneName: Othello
 --- !u!4 &503695636
 Transform:
   m_ObjectHideFlags: 0
@@ -495,6 +497,7 @@ GameObject:
   - component: {fileID: 1702304911}
   - component: {fileID: 1702304910}
   - component: {fileID: 1702304909}
+  - component: {fileID: 1702304912}
   m_Layer: 0
   m_Name: Network Manager
   m_TagString: Untagged
@@ -588,6 +591,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1702304912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1702304908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e3914f1cd7c09c4bae9745beac63e6d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
