@@ -67,7 +67,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             LobbyManager.Instance.gameObject.SetActive(false);
             Debug.Log("Signing in Client " + ProfileName);
-            yield return AuthenticationManager.Instance.SignInAnonAsync("Client" + ProfileName);
+            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Client" + ProfileName);
 
             Debug.Log("Start Client");
 
@@ -89,7 +89,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             LobbyManager.Instance.gameObject.SetActive(false);
             Debug.Log("Starting Host");
-            yield return AuthenticationManager.Instance.SignInAnonAsync("Host" + ProfileName);
+            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Host" + ProfileName);
 
             NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>().SetConnectionData("0.0.0.0", 7777);
 
@@ -131,7 +131,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         IEnumerator LobbyHost()
         {
-            yield return AuthenticationManager.Instance.SignInAnonAsync("Host" + ProfileName);
+            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Host" + ProfileName);
             yield return new WaitUntil(() => AuthenticationService.Instance.IsSignedIn);
 
             var lobbyTask = LobbyManager.Instance.HostLobby();
