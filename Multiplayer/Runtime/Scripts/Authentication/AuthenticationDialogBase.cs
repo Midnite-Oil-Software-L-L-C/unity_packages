@@ -6,12 +6,12 @@ using Unity.Services.Core;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MidniteOilSoftware.Multiplayer
+namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public class AuthenticationDialogBase : MonoBehaviour
     {
         public string AuthenticationMethodName => _authenticationMethodName.text; 
-        public event Action<string> AuthenticationComplete;
+        public event Action<string, string> AuthenticationComplete;
         public event Action AuthenticationCanceled;
 
         [SerializeField] TMP_Text _authenticationMethodName;
@@ -37,6 +37,7 @@ namespace MidniteOilSoftware.Multiplayer
             AuthenticationManager.Instance.OnSigninFailed += HandleSigninFailed;
             _loginButton.onClick.AddListener(Login);
             _cancelButton.onClick.AddListener(CancelLogin);
+            _cancelButton.gameObject.SetActive(true);
             ShowLoginPanel();
         }
 
@@ -45,8 +46,7 @@ namespace MidniteOilSoftware.Multiplayer
             var userName = SettingsManager.Instance.GetSetting(UserNameKey, "player");
 
 #if UNITY_EDITOR
-            userName = FindFirstObjectByType<MPPMManager>().ProfileName 
-                       ?? userName;
+            userName = FindFirstObjectByType<MultiplayerPlayModeManager>().ProfileName ?? userName;
 #endif
 
             if (!string.IsNullOrWhiteSpace(userName))
@@ -64,10 +64,10 @@ namespace MidniteOilSoftware.Multiplayer
 
         protected void HandlePlayerLoggedIn()
         {
-            // ShowLobbyPanel();
-            // _playerIdText.SetText(AuthenticationService.Instance.PlayerId);
             SaveCredentials();
-            AuthenticationComplete?.Invoke(AuthenticationManager.Instance.PlayerId);
+            AuthenticationComplete?.Invoke(
+                AuthenticationManager.Instance.PlayerId,
+                _usernameInput.text);
         }
 
         void HandleSigninFailed(RequestFailedException e)
@@ -79,9 +79,6 @@ namespace MidniteOilSoftware.Multiplayer
         protected virtual void SaveCredentials()
         {
             SettingsManager.Instance.SetSetting(UserNameKey, _usernameInput.text);
-// #if UNITY_EDITOR
-//             PlayerPrefs.SetString("password", _passwordInput.text);
-// #endif
             PlayerPrefs.Save();            
         }
         

@@ -17,16 +17,20 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             get
             {
-                for (var i = 0; i < OthelloPlayers.Count; i++)
+                if (LocalPlayerIndex < PlayerChipColors.Count)
                 {
-                    if (OthelloPlayers[i] == LocalPlayer)
-                    {
-                        return (ChipColor)PlayerChipColors[i];
-                    }
-                } 
+                    return (ChipColor)PlayerChipColors[LocalPlayerIndex];
+                }
+
+                Debug.LogWarning(
+                    $"LocalPlayerIndex {LocalPlayerIndex} out of range of PlayerChipColors.Count {PlayerChipColors.Count}");
                 return ChipColor.White;
             }
         }
+
+        public ChipColor CurrentPlayerChipColor => (ChipColor)PlayerChipColors[CurrentPlayerTurnIndex];
+
+        public int LocalPlayerIndex => OthelloPlayers.IndexOf(LocalOthelloPlayer);
 
         public bool IsLocalPlayerTurn
         {
@@ -63,7 +67,6 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             if (reversiPlayer == null)
             {
                 Debug.LogError($"Player {player.name} is not a ReversiPlayer");
-                return;
             }
         }
 
@@ -72,46 +75,74 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             Debug.Log($"ServerOnlyHandleGameStateChange. CurrentState = {CurrentState}");
             if (CurrentState == GameState.GameStarted)
             {
-                SetPlayerChipColors();
+                InitializePlayerOrderAndChipColors();
             }
             base.ServerOnlyHandleGameStateChange();
         }
 
-        protected override bool GameOver()
+        protected override bool IsGameOver()
         {
             return Board.BoardIsFull;
         }
 
-        void SetPlayerChipColors()
+        void InitializePlayerOrderAndChipColors()
         {
+            Debug.Log("Initializing player order and chip colors");
             PlayerChipColors.Clear();
             var chipColor = (ChipColor)Random.Range(0, 1);
             _currentPlayerTurnIndex.Value = (int)chipColor;
             PlayerChipColors.Add((int)chipColor);
             PlayerChipColors.Add(chipColor == ChipColor.Black ? (int)ChipColor.White : (int)ChipColor.Black);
             Debug.Log($"Setting player chip colors. Player 0 = {(ChipColor)PlayerChipColors[0]} Player 1 = {(ChipColor)PlayerChipColors[1]}");
+            Debug.Log($"LocalPlayer({LocalPlayerIndex} ChipColor = {LocalPlayerChipColor}");
             Debug.Log($"_currentPlayerTurnIndex.Value = {_currentPlayerTurnIndex.Value}");
+            PlayerPassed.Clear();
+            PlayerPassed.Add(false);
+            PlayerPassed.Add(false);
         }
-
+        
         void ChipDroppedEventHandler(ChipDroppedEvent _)
         {
+            ClearPlayerPassedServerRpc();
             SetGameState(GameState.PlayerTurnEnd);
         }
-
-        void PlayerPassedEventHandler(PlayerPassedEvent e)
+        
+        [Rpc(SendTo.Server)]
+        void ClearPlayerPassedServerRpc()
         {
-            PlayerPassed[e.ChipColor] = true;
+            PlayerPassed[0] = PlayerPassed[1] = false;
+        }
+
+        [Rpc(SendTo.Server)]
+        public void PlayerPassedServerRpc(ChipColor _)
+        {
+            PlayerPassed[CurrentPlayerTurnIndex] = true;
             var playersPassed = 0;
-            foreach (var playerPassed in PlayerPassed)
+            foreach (var passed in PlayerPassed)
             {
-                if (playerPassed)
+                if (passed)
                 {
                     playersPassed++;
                 }
             }
+            Debug.Log($"{CurrentPlayerChipColor} passed. {playersPassed}/{OthelloPlayers.Count} players have passed.");
 
             SetGameState(playersPassed == OthelloPlayers.Count 
                 ? GameState.GameOver : GameState.PlayerTurnEnd);
+        }
+
+        [Rpc(SendTo.Server)]
+        public void RematchServerRpc()
+        {
+            ClearPlayerPassedServerRpc();
+            SetGameState(GameState.GameRestarted);
+        }
+
+        [Rpc(SendTo.Server)]
+        public void ExitGameServerRpc()
+        {
+            // todo implement exit game
+            Debug.LogWarning("Exit game not implemented");
         }
     }
 }

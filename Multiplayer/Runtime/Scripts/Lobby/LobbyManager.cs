@@ -1,15 +1,16 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MidniteOilSoftware.Core;
+using MidniteOilSoftware.Multiplayer.Authentication;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Networking.Transport;
 using Unity.Services.Authentication;
 using Unity.Services.Lobbies;
 using Unity.Services.Lobbies.Models;
-using Unity.Services.Multiplayer;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
@@ -19,20 +20,28 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
     public class LobbyManager : SingletonMonoBehaviour<LobbyManager>
     {
         [SerializeField] int _maxPlayers = 4;
+        
         public Unity.Services.Lobbies.Models.Lobby CurrentLobby { get; private set; }
 
-        float _lastLobbyRefreshTime;
         List<Unity.Services.Lobbies.Models.Lobby> _lobbies;
-        Coroutine _refreshLobbiesRoutine;
         Timer _heartBeatTimer;
         Timer _refreshTimer;
         bool _lobbiesModified;
         ILobbyEvents _lobbyEvents;
+        UnityTransport _transport;
 
+        UnityTransport Transport
+        {
+            get
+            {
+                if (_transport == null)
+                    _transport = NetworkManager.Singleton.GetComponentInChildren<UnityTransport>();
+                return _transport;
+            }
+        }
         const string RelayCodeKey = "relayCode";
         const string IsReadyKey = "isReady";
         const string IsHostKey = "isHost";
-        const string LogWinCategory = "LobbyManger";
 
         public bool IsLocalPlayerLobbyHost =>
             CurrentLobby != null && CurrentLobby.HostId == AuthenticationService.Instance?.PlayerId;
@@ -49,7 +58,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 Data = new()
             };
             CurrentLobby = await LobbyService.Instance.CreateLobbyAsync(
-                AuthenticationService.Instance.Profile + "'s Game",
+                AuthenticationManager.Instance.PlayerName + "'s Game",
                 _maxPlayers,
                 options);
 
@@ -62,8 +71,32 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             return CurrentLobby;
         }
 
+        public async Task CloseLobby()
+        {
+            if (CurrentLobby == null)
+                return;
+
+            StopHeartbeatTimer();
+            StopRefreshTimer();
+            await UnsubscribeFromLobbyEvents();
+            try
+            {
+                await LobbyService.Instance.DeleteLobbyAsync(CurrentLobby.Id);
+                NetworkManager.Singleton.Shutdown();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Error deleting lobby. {e}");
+            }
+            finally
+            {
+                CurrentLobby = null;
+            }
+        }
+        
         public async Task JoinLobby(Unity.Services.Lobbies.Models.Lobby lobby)
         {
+            Debug.Log($"Joining lobby {lobby.Name}");
             CurrentLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id);
             await UpdatePlayerLobbyData();
             _lobbyEvents = await SubscribeToLobbyEventsAsync();
@@ -79,6 +112,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 return;
 
             StopHeartbeatTimer();
+            StopRefreshTimer();
             await UnsubscribeFromLobbyEvents();
             await LobbyService.Instance.RemovePlayerAsync(CurrentLobby.Id, AuthenticationService.Instance.PlayerId);
             CurrentLobby = null;
@@ -146,7 +180,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         public async Task RequestStartGame()
         {
-            string relayCode = null;
+            string relayCode;
             try
             {
                 relayCode = await GetRelayAllocation();
@@ -240,9 +274,13 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         public void ToggleAutoRefreshLobbies(bool autoRefreshEnabled)
         {
             if (autoRefreshEnabled)
+            {
                 StartRefreshTimer();
-            else if (_refreshLobbiesRoutine != null)
+            }
+            else 
+            {
                 StopRefreshTimer();
+            }
         }
 
         void StartRefreshTimer()
@@ -255,8 +293,6 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         void RestartRefreshTimer()
         {
             if (_refreshTimer == null) return;
-            _refreshTimer.OnTimerStop -= RefreshLobbies;
-            _refreshTimer.OnTimerStop += RefreshLobbies;
             _refreshTimer.Start();
         }
 
@@ -264,7 +300,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             if (_refreshTimer == null) return;
             _refreshTimer.OnTimerStop -= RefreshLobbies;
-            _refreshTimer.Stop();
+            _refreshTimer.Stop(false);
             _refreshTimer = null;
         }
 
@@ -272,31 +308,37 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             if (_heartBeatTimer == null) return;
             _heartBeatTimer.OnTimerStop -= SendHeartbeatPing;
-            _heartBeatTimer.Stop();
+            _heartBeatTimer.Stop(false);
             _heartBeatTimer = null;
         }
 
         void RefreshLobbies()
         {
-            Task.Run(async () =>
+            StartCoroutine(RefreshLobbiesCoroutine());
+        }
+
+        IEnumerator RefreshLobbiesCoroutine()
+        {
+            yield return RefreshLobbiesAsyncWrapper();
+            RestartRefreshTimer();
+        }
+
+        private IEnumerator RefreshLobbiesAsyncWrapper()
+        {
+            var task = RefreshLobbiesAsync();
+            while (!task.IsCompleted)
             {
-                try
-                {
-                    await RefreshLobbiesAsync();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogError(e);
-                }
-                finally
-                {
-                    RestartRefreshTimer();
-                }
-            });
+                yield return null;
+            }
         }
 
         async Task UpdatePlayerLobbyData(bool isHost = false)
         {
+            if (string.IsNullOrEmpty(AuthenticationManager.Instance.PlayerName))
+            {
+                Debug.LogError("Player name is null or empty");
+                return;
+            }
             try
             {
                 var options = new UpdatePlayerOptions
@@ -332,7 +374,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
             catch (LobbyServiceException e)
             {
-                Debug.LogError(e);
+                Debug.LogError($"Error updating lobby player data. {e}");
             }
         }
 
@@ -346,20 +388,20 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
             catch (Exception e)
             {
-                if (!e.Message.Contains("401")) Debug.LogError(e);
+                if (!e.Message.Contains("401") && !e.Message.Contains("429"))
+                {
+                    Debug.LogError(e);
+                }
             }
         }
 
         async void HandleCurrentLobbyChanged(ILobbyChanges changes)
         {
             if (CurrentLobby == null) return;
-            Debug.Log($"Changes to lobby {CurrentLobby.Name}");
             changes.ApplyToLobby(CurrentLobby);
 
-            if (changes.Data.Changed &&
-                changes.Data.Value.TryGetValue(RelayCodeKey, out var relayCode))
+            if (changes.Data.Changed && changes.Data.Value.TryGetValue(RelayCodeKey, out var relayCode))
             {
-                Debug.Log($"'relayCode' set to '{relayCode.Value.Value}'");
                 await SetRelayClientData(relayCode.Value.Value);
             }
 
@@ -402,12 +444,18 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 joinAllocation.HostConnectionData,
                 isSecure);
 
+            #if UNITY_WEBGL
+            var relayClientData = joinAllocation.ToRelayServerData("wss");
+            transport.SetRelayServerData(relayClientData);
+            #else
+            var relayClientData = joinAllocation.ToRelayServerData("dtls");
+            transport.SetRelayServerData(relayClientData);
+            #endif
             await PlayerConnectionsManager.Instance.StartClient();
         }
 
         async Task<string> GetRelayAllocation()
         {
-            // Use the first region as an example and create the Relay allocation
             var regions = await RelayService.Instance.ListRegionsAsync();
             var region = regions[0].Id;
             
@@ -419,14 +467,30 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 allocation.RelayServer.IpV4,
                 allocation.RelayServer.Port,
                 out bool isSecure);
-
-            UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            transport.SetHostRelayData(AddressFromEndpoint(endpoint), endpoint.Port,
-                allocation.AllocationIdBytes, allocation.Key, allocation.ConnectionData, isSecure);
-
+            
+            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+            transport.SetHostRelayData(AddressFromEndpoint(endpoint), 
+                endpoint.Port,
+                allocation.AllocationIdBytes, 
+                allocation.Key, 
+                allocation.ConnectionData, 
+                isSecure);
+            
+            #if UNITY_WEBGL
+            SetRelayServerData(allocation, "wss");
+            #else
+            SetHostRelayData(allocation, "dtls");
+            #endif
+            
             return relayCode;
         }
 
+        void SetRelayServerData(Allocation allocation, string connectionType)
+        {
+            var relayServerData = allocation.ToRelayServerData(connectionType);
+            Transport.SetRelayServerData(relayServerData);
+        }
+        
         async Task SetLobbyRelayCode(string relayCode)
         {
             var options = new UpdateLobbyOptions

@@ -1,10 +1,9 @@
 ﻿using MidniteOilSoftware.Core.Settings;
-using MidniteOilSoftware.Multiplayer.Lobby;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace MidniteOilSoftware.Multiplayer
+namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public class UsernameAndPasswordAuthenticationDialog : AuthenticationDialogBase
     {

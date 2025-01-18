@@ -1,4 +1,4 @@
-namespace MidniteOilSoftware.Multiplayer
+namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public struct SigninResult
     {

@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using MidniteOilSoftware.Core;
+using MidniteOilSoftware.Multiplayer.Authentication;
+using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -37,7 +40,7 @@ namespace MidniteOilSoftware.Multiplayer
         async Task AddPayloadData()
         {
 #if UNITY_EDITOR // Editor only Logging
-            var profileName = FindFirstObjectByType<MPPMManager>().ProfileName;
+            var profileName = FindFirstObjectByType<MultiplayerPlayModeManager>().ProfileName;
             Debug.Log($"PlayerConnectionsManager.AddPayloadData(): Getting PlayerName for Profile {profileName}");
 #endif
 
@@ -83,7 +86,6 @@ namespace MidniteOilSoftware.Multiplayer
         {
             Debug.Log("Starting client");
             await AddPayloadData();
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
             NetworkManager.Singleton.OnClientStarted += OnClientStarted;
             NetworkManager.Singleton.StartClient();
         }

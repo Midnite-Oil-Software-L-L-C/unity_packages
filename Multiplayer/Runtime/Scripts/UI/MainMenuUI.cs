@@ -1,3 +1,4 @@
+using MidniteOilSoftware.Multiplayer.Authentication;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using TMPro;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
         [SerializeField] CurrentLobbyPanel _currentLobbyPanel;
 
         [Header("Text Fields")] 
-        [SerializeField] TMP_Text _playerIdText ,_statusText, _gameNameText;
+        [SerializeField] TMP_Text _playerIdText, _playerNameText, _statusText, _gameNameText;
 
         void Start()
         {
@@ -32,9 +33,10 @@ namespace MidniteOilSoftware.Multiplayer.UI
             _gameNameText.SetText(LobbyManager.Instance.CurrentLobby?.Name ?? string.Empty);
         }
 
-        void PlayerLoggedIn(string playerName)
+        void PlayerLoggedIn(string playerId, string playerName)
         {
-            _playerIdText.SetText(playerName);
+            _playerIdText.SetText(playerId);
+            _playerNameText.SetText(playerName);
             ShowLobbyPanel();
         }
 

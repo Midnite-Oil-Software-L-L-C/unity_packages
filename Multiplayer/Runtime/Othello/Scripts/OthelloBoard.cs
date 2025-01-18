@@ -3,7 +3,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
-using Unity.VisualScripting;
 using EventBus = MidniteOilSoftware.Core.EventBus;
 
 namespace MidniteOilSoftware.Multiplayer.Othello
@@ -24,7 +23,12 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         }
         public int WhiteChips => _cells.Cast<Cell>().Count(cell => cell.Chip && cell.Chip.Color == ChipColor.White);
         public int BlackChips => _cells.Cast<Cell>().Count(cell => cell.Chip && cell.Chip.Color == ChipColor.Black);
-        
+
+        public void SetupBoardForStartOfGame()
+        {
+            PlaceInitialChips();
+        }
+
         OthelloGameManager _gameManager;
         readonly Cell[,] _cells = new Cell[8,8];
         Chip _chipCursor;
@@ -61,6 +65,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             _pointerPosition.performed -= OnPointerMoved;
             _leftClick.performed -= OnLeftClick;
+            Destroy(_chipCursor.gameObject);
         }
 
         void BuildBoard()
@@ -78,12 +83,14 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                     _cells[x, z] = cell;
                 }
             }
-            
-            PlaceInitialChips();
         }
 
         void PlaceInitialChips()
         {
+            foreach(var cell in _cells)
+            {
+                cell.ClearChip();
+            }
             var chip = Instantiate(_chipPrefab, _cells[3, 3].transform).GetComponent<Chip>();
             chip.SetColor(ChipColor.White);
             _cells[3, 3].DropChip(chip);
@@ -118,30 +125,40 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
         void OnPointerMoved(InputAction.CallbackContext context)
         {
-            if (!_gameManager.IsLocalPlayerTurn) return;
+            if (!_gameManager.IsLocalPlayerTurn)
+            {
+                _chipCursor.gameObject.SetActive(false);
+                return;
+            }
             var cell = GetCellUnderMouse(context);
             if (cell)
             {
                 if (_hoveredCell == cell || cell.Chip) return;
-                if (!IsLegalMove(cell.X, cell.Y, _gameManager.LocalPlayerChipColor))
-                {
-                    _chipCursor.gameObject.SetActive(false);
-                    return;
-                }
                 _hoveredCell = cell;
                 _chipCursor.transform.localPosition = _hoveredCell.transform.localPosition + Vector3.up * 0.25f;
                 _chipCursor.SetColor(_gameManager.LocalPlayerChipColor);
                 _chipCursor.gameObject.SetActive(true);
+                ShowSurroundedChips(cell.X, cell.Y, _gameManager.LocalPlayerChipColor);
+                if (!IsLegalMove(cell.X, cell.Y, _gameManager.LocalPlayerChipColor))
+                {
+                    cell.Highlight(true, true);
+                }
                 return;
             }
-
+            _chipCursor.gameObject.SetActive(false);
+            ClearChipHighlights();
             _hoveredCell = null;
         }
 
         private void OnLeftClick(InputAction.CallbackContext context)
         {
             if (!_gameManager.IsLocalPlayerTurn) return;
-            if (_hoveredCell == null) return;
+            if (_hoveredCell == null ||
+                !IsLegalMove(_hoveredCell.X, _hoveredCell.Y, _gameManager.LocalPlayerChipColor))
+            {
+                return;
+            }
+
             DropChip();
         }
 
@@ -167,13 +184,9 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
         #endregion Input actions
 
-        void DropChip()
-        {
-            _chipCursor.gameObject.SetActive(false);
-            DropChipServerRPC(_hoveredCell.X, _hoveredCell.Y, _gameManager.LocalPlayerChipColor);
-        }
 
         #region RPCs
+
         [Rpc(SendTo.Server)]
         void DropChipServerRPC(int x, int y, ChipColor color)
         {
@@ -185,29 +198,47 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         void DropChipClientRPC(int x, int y, ChipColor chipColor)
         {
             Debug.Log($"{chipColor} chip dropped at {x},{y} on client.");
+            if (chipColor != _gameManager.CurrentPlayerChipColor)
+            {
+                Debug.LogWarning($"DropChipClientRPC: Chip color {chipColor} does not match current player color {_gameManager.CurrentPlayerChipColor}");
+            }
             var cell = _cells[x, y];
             var chip = Instantiate(_chipPrefab, cell.transform).GetComponent<Chip>();
-            chip.SetColor(chipColor);
+            chip.SetColor(_gameManager.CurrentPlayerChipColor);
             cell.DropChip(chip);
-            EventBus.Instance.Raise(new ChipDroppedEvent());
+            EventBus.Instance.Raise(new ChipDroppedEvent((int)chipColor));
             var surroundedChips = FindSurroundedChips(x, y, chipColor);
             foreach (var surroundedChip in surroundedChips)
             {
                 surroundedChip.FlipChip();
             }
         }
-        
+
+        #endregion
+
+        public bool HasLegalMove(ChipColor chipColor)
+        {
+            for (var x = 0; x < 8; x++)
+            {
+                for (var y = 0; y < 8; y++)
+                {
+                    if (IsLegalMove(x, y, chipColor))
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         bool IsLegalMove(int x, int y, ChipColor chipColor)
         {
             if (_cells[x, y].Chip != null)
             {
-                Debug.Log($"IsLegalMove: Cell {x},{y} is already occupied.");
                 return false;
             }
             var surroundedChips = FindSurroundedChips(x, y, chipColor);
-            if (surroundedChips.Any()) return true;
-            Debug.Log($"IsLegalMove: Cell {x},{y} doesn't surround any chips.");
-            return false;
+            return surroundedChips.Any();
         }
 
         List<Chip> FindSurroundedChips(int x, int y, ChipColor chipColor)
@@ -225,7 +256,6 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
             return surroundedChips;
         }
-
 
         IEnumerable<Chip> FindSurroundedChipsInDirection(int x, int y, (int x, int y) direction, 
             ChipColor chipColor)
@@ -257,6 +287,35 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             return chips;            
         }
 
-        #endregion
+        void ShowSurroundedChips(int x, int y, ChipColor chipColor)
+        {
+            var surroundedChips = FindSurroundedChips(x, y, chipColor);
+            foreach (var cell in _cells)
+            {
+                if (cell.Chip && surroundedChips.Contains(cell.Chip))
+                {
+                    cell.Highlight(true);
+                    continue;
+                }
+
+                cell.Highlight(false);
+            }
+        }
+        
+        void ClearChipHighlights()
+        {
+            foreach (var cell in _cells)
+            {
+                cell.Highlight(false);
+            }
+        }
+
+        void DropChip()
+        {
+            _chipCursor.gameObject.SetActive(false);
+            ClearChipHighlights();
+            DropChipServerRPC(_hoveredCell.X, _hoveredCell.Y, _gameManager.LocalPlayerChipColor);
+        }
+        
     }
 }

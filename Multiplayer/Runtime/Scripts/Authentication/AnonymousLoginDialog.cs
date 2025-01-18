@@ -1,6 +1,4 @@
-﻿using MidniteOilSoftware.Multiplayer.Lobby;
-
-namespace MidniteOilSoftware.Multiplayer
+﻿namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public class AnonymousLoginDialog : AuthenticationDialogBase
     {

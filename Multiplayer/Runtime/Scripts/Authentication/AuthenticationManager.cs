@@ -6,24 +6,23 @@ using Unity.Services.Authentication;
 using Unity.Services.Core;
 using UnityEngine;
 
-namespace MidniteOilSoftware.Multiplayer.Lobby
+namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public class AuthenticationManager : SingletonMonoBehaviour<AuthenticationManager>
     {
         public event Action OnSignedIn;
         public event Action<RequestFailedException> OnSigninFailed;
         public string PlayerId => AuthenticationService.Instance.PlayerId;
-        public string PlayerName => AuthenticationService.Instance.PlayerName;
+        public string PlayerName { get; private set; }
+
         public ulong ConnectionId => NetworkManager.Singleton.LocalClientId;
 
         const float MessageLimitRate = 1.2f;
-        PlayerInfo _playerInfo;
 
         public async Awaitable<SigninResult> SignInAnonymouslyAsync(string playerName)
         {
             try
             {
-                Debug.Log("Signing In Anonymously");
                 if (AuthenticationService.Instance.IsSignedIn)
                 {
                     AuthenticationService.Instance.SignOut();
@@ -32,17 +31,16 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
                 if (playerName == default && AuthenticationService.Instance.SessionTokenExists)
                 {
-                    Debug.Log("Session Token Exists");
                     await AuthenticationService.Instance.SignInAnonymouslyAsync();
                 }
                 else
                 {
-                    Debug.Log("Signing In Anonymously");
-                    SignInOptions options = new SignInOptions() { CreateAccount = true };
+                    var options = new SignInOptions() { CreateAccount = true };
                     await AuthenticationService.Instance.SignInAnonymouslyAsync(options);
-                    await AuthenticationService.Instance.UpdatePlayerNameAsync(playerName);
+                    await AuthenticationService.Instance.UpdatePlayerNameAsync(playerName.Replace(" ", ""));
                 }
 
+                PlayerName = playerName.Replace(" ", "");
                 return SigninResult.Successful;
             }
             catch (Exception ex)
@@ -51,14 +49,15 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
         }
 
-        public async Task<SigninResult> SignInWithUserNameAndPasswordAsync(string username, string password)
+        public async Task<SigninResult> SignInWithUserNameAndPasswordAsync(string playerName, string password)
         {
+            var trimmedPlayerName = playerName.Replace(" ", "");
             try
             {
-                await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(username, password);
-                await AuthenticationService.Instance.UpdatePlayerNameAsync(username);
+                await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(trimmedPlayerName, password);
+                await AuthenticationService.Instance.UpdatePlayerNameAsync(trimmedPlayerName);
 
-                Debug.Log($"{username} Signed In");
+                PlayerName = trimmedPlayerName;
                 return new SigninResult(true, String.Empty);
             }
             catch (Exception ex)
@@ -68,11 +67,13 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
         }
 
-        public async Task<SigninResult> RegisterWithUserNameAndPasswordAsync(string username, string password)
+        public async Task<SigninResult> RegisterWithUserNameAndPasswordAsync(string playerName, string password)
         {
+            var trimmedPlayerName = playerName.Replace(" ", "");
             try
             {
-                await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(username, password);
+                await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(trimmedPlayerName, password);
+                PlayerName = trimmedPlayerName;
                 return new SigninResult(true, String.Empty);
             }
             catch (Exception ex)
@@ -105,7 +106,6 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         void HandleSignedInAnon()
         {
-            Debug.Log("Signed In");
             OnSignedIn?.Invoke();
         }
 
@@ -114,10 +114,10 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             Debug.Log("Signed Out");
         }
 
-        void HandleSignInFailed(RequestFailedException obj)
+        void HandleSignInFailed(RequestFailedException exception)
         {
-            Debug.Log($"Sign In Failed: {obj.Message}");
-            OnSigninFailed?.Invoke(obj);
+            Debug.LogError($"Sign In Failed: {exception.Message}");
+            OnSigninFailed?.Invoke(exception);
         }
     }
 }

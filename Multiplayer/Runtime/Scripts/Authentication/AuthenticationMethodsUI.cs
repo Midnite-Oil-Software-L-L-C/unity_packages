@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-namespace MidniteOilSoftware.Multiplayer.UI
+namespace MidniteOilSoftware.Multiplayer.Authentication
 {
     public class AuthenticationMethodsUI : MonoBehaviour
     {

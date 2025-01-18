@@ -2,7 +2,7 @@ namespace MidniteOilSoftware.Multiplayer.Events
 {
     public struct GameStateChangedEvent
     {
-        public GameState NewState;
+        public GameState NewState { get; }
 
         public GameStateChangedEvent(GameState newState)
         {

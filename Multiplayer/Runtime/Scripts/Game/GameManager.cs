@@ -100,8 +100,11 @@ namespace MidniteOilSoftware.Multiplayer
                     _currentPlayerTurnIndex.Value = 0;
                     SetGameState(GameState.PlayerTurnStart, 0.25f);
                     break;
+                case GameState.GameRestarted:
+                    SetGameState(GameState.PlayerTurnStart, 0.25f);
+                    break;
                 case GameState.PlayerTurnEnd:
-                    if (GameOver())
+                    if (IsGameOver())
                     {
                         SetGameState(GameState.GameOver, 0.25f);
                         return;
@@ -122,7 +125,7 @@ namespace MidniteOilSoftware.Multiplayer
             }
         }
 
-        protected virtual bool GameOver()
+        protected virtual bool IsGameOver()
         {
             throw new System.NotImplementedException("You must override this method in a subclass");
         }
@@ -173,6 +176,13 @@ namespace MidniteOilSoftware.Multiplayer
                 JoinedGame(networkPlayer);
             }
         }
+        
+        [Rpc(SendTo.Server)]
+        public virtual void PlayerResignedServerRpc(ulong _, string toString)
+        {
+            Debug.Log($"{toString} resigned");
+            SetGameState(GameState.GameOver);
+        }
     }
 
     public enum GameState
@@ -180,6 +190,7 @@ namespace MidniteOilSoftware.Multiplayer
         None,
         WaitingForPlayers,
         GameStarted,
+        GameRestarted,
         PlayerTurnStart,
         PlayerTurnEnd,
         GamePaused,

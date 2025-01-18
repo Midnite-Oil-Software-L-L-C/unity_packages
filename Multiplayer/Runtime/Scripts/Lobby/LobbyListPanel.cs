@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Unity.Services.Lobbies.Models;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,18 +13,21 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         public void Initialize()
         {
-            Debug.Assert(_autoRefreshToggle != null, "_autoRefreshToggle is null");
-            Debug.Assert(LobbyManager.Instance != null, "LobbyManager.Instance is null");
-
-            // Remove existing listeners to prevent duplicates
             _autoRefreshToggle.onValueChanged.RemoveAllListeners();
             _autoRefreshToggle.onValueChanged.AddListener(LobbyManager.Instance.ToggleAutoRefreshLobbies);
-
+            _hostButton.onClick.RemoveAllListeners();
+            _hostButton.onClick.AddListener(LobbyManager.Instance.HostLobbyAsync);
+            _refreshButton.onClick.RemoveAllListeners();
+            _refreshButton.onClick.AddListener(HandleRefreshLobbyClick);
+            #if UNITY_WEBGL
+            _backButton.gameObject.SetActive(false);
+            #else
+            _backButton.onClick.RemoveAllListeners();
+            _backButton.onClick.AddListener(HandleBackButtonClick);
+            _backButton.gameObject.SetActive(true);
+            #endif
             LobbyManager.Instance.ToggleAutoRefreshLobbies(_autoRefreshToggle.isOn);
             LobbyManager.Instance.OnLobbiesUpdated += UpdateLobbiesUI;
-            _hostButton.onClick.AddListener(LobbyManager.Instance.HostLobbyAsync);
-            _refreshButton.onClick.AddListener(HandleRefreshLobbyClick);
-            _backButton.onClick.AddListener(HandleBackButtonClick);
         }
 
         void OnDestroy()
