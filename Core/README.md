@@ -9,11 +9,9 @@
 ## Components in this package
 ### Create Default Folders
 After installing the Core package you should see a Create Default Folders menu item under Midnite Oil Software > Core.<br>
-![test](../images/Create%20Default%20Folders.png)
-
-![Create Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Create+Default+Folders.png)<br><br>
+![Create Default Folders](../images/Create%20Default%20Folders.png)<br>
 This will create the following folders in your project:<br>
-![Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Default+Folders.png)<br>
+![Default Folders](../images/Default%20Folders.png)<br>
 
 ---
 ### SingletonMonoBehaviour
@@ -134,24 +132,24 @@ The timer manager allows you to create timers that will trigger events when they
 The AudioEvent is a collection of audio clips with random ranges for volume, pitch and distance. You can create an AudioEvent for every sound effect in your game. Each AudioEvent is assigned to an AudioMixerGroup.<br>
 Simply call Play on the AudioEvent to play a random clip from the collection of clips with a random volume/pitch/distance based on the ranged parameters.<br>
 
-![Audio Events](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/AudioEvents.png)<br>
+![Audio Events](../images/AudioEvents.png)<br>
 The AudioEventEditor (custom editor) adds a preview button where you can test the event in the editor.<br>
-![Audio Event Properties](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/AudioEventProperties.png)
+![Audio Event Properties](../images/AudioEventProperties.png)
 ---
 ### Music Manager
 [MusicManager.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Music/MusicManager.cs)<br>
 Smoothly transition between music clips, music clip groups and music mixes. The MusicManager shuffles clips from the selected music clip group. The MusicManager is a SingletonMonoBehaviour so it persists between scene loads.
-![Music Manager](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Manager.png)
+![Music Manager](../images/Music%20Manager.png)
 #### Music Clip Groups
 [MusicClipGroup.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Music/MusicClipGroup.cs)<br>
 A MusicClipGroup is a collection of MusicClips. The MusicManager will shuffle clips from the selected MusicClipGroup.<br>
-![Music Clip Group](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Clip+Group.png)
+![Music Clip Group](../images/Music%20Clip%20Group.png)
 #### Music Mixes
 [MusicMix.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Music/MusicMix.cs)<br>
 Music mixes are used to transition between music clips using their associated audio snapshots. The MusicManager will fade out the current clip and fade in the next clip. The MusicManager will shuffle clips from the selected MusicClipGroup.<br>
-![Music Mix 1](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Mix.png)<br>
-![Music Mix 2](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Mix+2.png)<br>
-![Audio Mixer](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Audio+Mixer.png)<br>
+![Music Mix 1](../images/Music%20Mix.png)<br>
+![Music Mix 2](../images/Music%20Mix%202.png)<br>
+![Audio Mixer](../images/Audio%20Mixer.png)<br>
 ---
 ### RangedFloat / MinMaxRangeAttribute with RangedFloatDrawer.
 Useful for min/max fields.
@@ -161,9 +159,9 @@ Useful for min/max fields.
 [SerializeField] [MinMaxRange(0, 2f)] RangedFloat _pitch = new RangedFloat(1, 1);
 [SerializeField] [MinMaxRange(0f, 1000f)] RangedFloat _distance = new RangedFloat(1, 1000);
 ```
-![RangedFloat](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/RangedFloat.png)<br>
+![RangedFloat](../images/RangedFloat.png)<br>
 ---
 ## Samples
 After installing the Core package you can navigate to the Samples tab and install a demo scene that demonstrates how to use the features of the Core package.<br>
-![Samples](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Samples.png)
+![Samples](../images/Samples.png)
 
