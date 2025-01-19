@@ -9,6 +9,7 @@
 ## Components in this package
 ### Create Default Folders
 After installing the Core package you should see a Create Default Folders menu item under Midnite Oil Software > Core.<br>
+![test](../images/Create+Default+Folders.png)
 ![Create Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Create+Default+Folders.png)<br><br>
 This will create the following folders in your project:<br>
 ![Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Default+Folders.png)<br>
