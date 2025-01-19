@@ -6,8 +6,14 @@
 2. Click the "+" button and choose `Add package from git URL`.
 3. Enter the following URL: https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Core
 
-
 ## Components in this package
+### Create Default Folders
+After installing the Core package you should see a Create Default Folders menu item under Midnite Oil Software > Core.<br>
+![Create Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Create+Default+Folders.png)<br><br>
+This will create the following folders in your project:<br>
+![Default Folders](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Default+Folders.png)<br>
+
+---
 ### SingletonMonoBehaviour
 [SingletoneMonoBehaviour.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/SingletonMonoBehaviour.cs)<br>
 Generic class used to implement the singleton pattern. Great for classes that need to persist between scene loads and be accessed from anywhere (e.g. game managers).<br>
@@ -28,6 +34,7 @@ Generic class used to implement the singleton pattern. Great for classes that ne
         }
     }
 ```
+---
 ### Settings Manager
 [SettingsManager.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Settings/SettingsManager.cs)<br>
 Helper class for saving and loading settings. Uses PlayerPrefs to save settings to disk.<br>
@@ -44,9 +51,11 @@ void OnDisable()
     SettingsManager.Instance.SetSetting("MySetting", "New Value", true);
 }    
 ```
+---
 ### AudioSettings
 [AudioSettings.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Settings/AudioSettings.cs)<br>
 Uses the SettingsManager to save and load audio settings.
+---
 ### EventBus
 [EventBus.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/EventBus/EventBus.cs)<br>
 Decouple components by using the EventBus to send and receive events.
@@ -81,7 +90,7 @@ Decouple components by using the EventBus to send and receive events.
         EventBus.Instance.Unsubscribe<MyEvent>(OnMyEvent);
     }
 ```
-
+---
 ### Timer Manager
 [TimerManager.cs]("https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/TimerManager.cs")<br>
 The timer manager allows you to create timers that will trigger events when they complete. They are a nice alternative to Coroutines.
@@ -117,6 +126,7 @@ The timer manager allows you to create timers that will trigger events when they
         _refreshTimer.Stop(false);
     }    
 ```
+---
 ### AudioEvent ScriptableObject
 [AudioEvent.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Audio/AudioEvent.cs)<br>
 The AudioEvent is a collection of audio clips with random ranges for volume, pitch and distance. You can create an AudioEvent for every sound effect in your game. Each AudioEvent is assigned to an AudioMixerGroup.<br>
@@ -125,6 +135,7 @@ Simply call Play on the AudioEvent to play a random clip from the collection of 
 ![Audio Events](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/AudioEvents.png)<br>
 The AudioEventEditor (custom editor) adds a preview button where you can test the event in the editor.<br>
 ![Audio Event Properties](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/AudioEventProperties.png)
+---
 ### Music Manager
 [MusicManager.cs](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/blob/main/Core/Runtime/Music/MusicManager.cs)<br>
 Smoothly transition between music clips, music clip groups and music mixes. The MusicManager shuffles clips from the selected music clip group. The MusicManager is a SingletonMonoBehaviour so it persists between scene loads.
@@ -139,6 +150,7 @@ Music mixes are used to transition between music clips using their associated au
 ![Music Mix 1](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Mix.png)<br>
 ![Music Mix 2](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Music+Mix+2.png)<br>
 ![Audio Mixer](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Audio+Mixer.png)<br>
+---
 ### RangedFloat / MinMaxRangeAttribute with RangedFloatDrawer.
 Useful for min/max fields.
 #### Sample usage:
@@ -148,6 +160,7 @@ Useful for min/max fields.
 [SerializeField] [MinMaxRange(0f, 1000f)] RangedFloat _distance = new RangedFloat(1, 1000);
 ```
 ![RangedFloat](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/RangedFloat.png)<br>
+---
 ## Samples
 After installing the Core package you can navigate to the Samples tab and install a demo scene that demonstrates how to use the features of the Core package.<br>
 ![Samples](https://s3.us-east-1.amazonaws.com/midniteoilsoftware.com/images/Samples.png)
