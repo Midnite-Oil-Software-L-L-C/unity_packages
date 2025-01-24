@@ -28,5 +28,27 @@ namespace MidniteOilSoftware.Core.Settings
             SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, musicVolume);
             SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, sfxVolume, true);
         }
+        
+        public float MasterVolume => _audioMixer.GetFloat(MasterVolumeKey, out var volume);
+        public float MusicVolume => _audioMixer.GetFloat(MusicVolumeKey, out var volume);
+        public float SfxVolume => _audioMixer.GetFloat(SfxVolumeKey, out var volume);
+        
+        public void SetMasterVolume(float volume, bool saveSettings = false)
+        {
+            _audioMixer.SetFloat(MasterVolumeKey, volume);
+            SettingsManager.Instance.SetSetting<float>(MasterVolumeKey, volume, saveSettings);
+        }
+        
+        public void SetMusicVolume(float volume, bool saveSettings = false)
+        {
+            _audioMixer.SetFloat(MusicVolumeKey, volume);
+            SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, volume, saveSettings);
+        }
+        
+        public void SetSfxVolume(float volume, bool saveSettings = false)
+        {
+            _audioMixer.SetFloat(SfxVolumeKey, volume);
+            SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, volume, saveSettings);
+        }
     }
 }
