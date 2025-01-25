@@ -7,48 +7,51 @@ namespace MidniteOilSoftware.Core.Settings
     {
         [SerializeField] AudioMixer _audioMixer;
 
-        public const string MasterVolumeKey = "MasterVolume";
-        public const string MusicVolumeKey = "MusicVolume";
-        public const string SfxVolumeKey = "SfxVolume";
+        public float MasterVolume { get; private set; }
+        public float MusicVolume { get; private set; }
+        public float SfxVolume { get; private set; }
+        
+        const string MasterVolumeKey = "MasterVolume";
+        const string MusicVolumeKey = "MusicVolume";
+        const string SfxVolumeKey = "SfxVolume";
 
         public void LoadAudioSettings()
         {
-            var masterVolume = SettingsManager.Instance.GetSetting<float>(MasterVolumeKey, 1f);
-            var musicVolume = SettingsManager.Instance.GetSetting<float>(MusicVolumeKey, 1f);
-            var sfxVolume = SettingsManager.Instance.GetSetting<float>(SfxVolumeKey, 1f);
+            MasterVolume = SettingsManager.Instance.GetSetting<float>(MasterVolumeKey, 1f);
+            MusicVolume = SettingsManager.Instance.GetSetting<float>(MusicVolumeKey, 1f);
+            SfxVolume = SettingsManager.Instance.GetSetting<float>(SfxVolumeKey, 1f);
 
-            _audioMixer.SetFloat(MasterVolumeKey, masterVolume);
-            _audioMixer.SetFloat(MusicVolumeKey, musicVolume);
-            _audioMixer.SetFloat(SfxVolumeKey, sfxVolume);
+            _audioMixer.SetFloat(MasterVolumeKey, MasterVolume);
+            _audioMixer.SetFloat(MusicVolumeKey, MusicVolume);
+            _audioMixer.SetFloat(SfxVolumeKey, SfxVolume);
         }
 
-        public void SaveAudioSettings(float masterVolume, float musicVolume, float sfxVolume)
+        public void SaveAudioSettings()
         {
-            SettingsManager.Instance.SetSetting<float>(MasterVolumeKey, masterVolume);
-            SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, musicVolume);
-            SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, sfxVolume, true);
+            SettingsManager.Instance.SetSetting<float>(MasterVolumeKey, MasterVolume);
+            SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, MusicVolume);
+            SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, SfxVolume, true);
         }
-        
-        public float MasterVolume => _audioMixer.GetFloat(MasterVolumeKey, out var volume);
-        public float MusicVolume => _audioMixer.GetFloat(MusicVolumeKey, out var volume);
-        public float SfxVolume => _audioMixer.GetFloat(SfxVolumeKey, out var volume);
         
         public void SetMasterVolume(float volume, bool saveSettings = false)
         {
-            _audioMixer.SetFloat(MasterVolumeKey, volume);
-            SettingsManager.Instance.SetSetting<float>(MasterVolumeKey, volume, saveSettings);
+            MasterVolume = volume;
+            _audioMixer.SetFloat(MasterVolumeKey, MasterVolume);
+            SettingsManager.Instance.SetSetting<float>(MasterVolumeKey, MasterVolume, saveSettings);
         }
         
         public void SetMusicVolume(float volume, bool saveSettings = false)
         {
-            _audioMixer.SetFloat(MusicVolumeKey, volume);
-            SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, volume, saveSettings);
+            MusicVolume = volume;
+            _audioMixer.SetFloat(MusicVolumeKey, MusicVolume);
+            SettingsManager.Instance.SetSetting<float>(MusicVolumeKey, MusicVolume, saveSettings);
         }
         
         public void SetSfxVolume(float volume, bool saveSettings = false)
         {
-            _audioMixer.SetFloat(SfxVolumeKey, volume);
-            SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, volume, saveSettings);
+            SfxVolume = volume;
+            _audioMixer.SetFloat(SfxVolumeKey, SfxVolume);
+            SettingsManager.Instance.SetSetting<float>(SfxVolumeKey, SfxVolume, saveSettings);
         }
     }
 }
