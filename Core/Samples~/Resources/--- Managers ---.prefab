@@ -67,7 +67,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7999260238040326053}
-  - component: {fileID: -7806520112688841337}
   m_Layer: 0
   m_Name: --- Managers ---
   m_TagString: Untagged
@@ -92,25 +91,6 @@ Transform:
   - {fileID: 727535956775757264}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-7806520112688841337
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 306693308094078644}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 861e1328a99051744934aa42580df94d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _musicClipGroups:
-  - {fileID: 11400000, guid: d515b1bb34f70fc459451c10ce8a9ae7, type: 2}
-  - {fileID: 11400000, guid: 570dda7750e2e264f91eab00fa3a00c8, type: 2}
-  - {fileID: 11400000, guid: efef68d7925966e47807ec38150fcc24, type: 2}
-  _musicMixes:
-  - {fileID: 11400000, guid: eddf75f2bc38d834ab8bee6c85726d28, type: 2}
-  - {fileID: 11400000, guid: b0b97ed40844aba4a8aa39f432fbe8c9, type: 2}
 --- !u!1 &1873527089371707023
 GameObject:
   m_ObjectHideFlags: 0
@@ -120,6 +100,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5973593485326907552}
+  - component: {fileID: 4481406468347556921}
   m_Layer: 0
   m_Name: Music Manager
   m_TagString: Untagged
@@ -142,3 +123,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7999260238040326053}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4481406468347556921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1873527089371707023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 861e1328a99051744934aa42580df94d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _musicClipGroups:
+  - {fileID: 11400000, guid: d515b1bb34f70fc459451c10ce8a9ae7, type: 2}
+  - {fileID: 11400000, guid: 570dda7750e2e264f91eab00fa3a00c8, type: 2}
+  - {fileID: 11400000, guid: efef68d7925966e47807ec38150fcc24, type: 2}
+  _musicMixes:
+  - {fileID: 11400000, guid: eddf75f2bc38d834ab8bee6c85726d28, type: 2}
+  - {fileID: 11400000, guid: b0b97ed40844aba4a8aa39f432fbe8c9, type: 2}
