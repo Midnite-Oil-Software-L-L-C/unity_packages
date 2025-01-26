@@ -5,7 +5,7 @@ using Random = UnityEngine.Random;
 
 namespace MidniteOilSoftware.Core.Audio
 {
-    [CreateAssetMenu(menuName = "Audio Events/Audio Event")]
+    [CreateAssetMenu(fileName = "Audio Event", menuName = "Midnite Oil Software/Core/Create Audio Event")]
     public class AudioEvent : ScriptableObject
     {
         [SerializeField] AudioMixerGroup _audioMixerGroup;
