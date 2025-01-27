@@ -29,11 +29,6 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         public bool IsLoading { get; private set; }
 
-        void Start()
-        {
-            NetworkManager.Singleton.OnServerStarted += SetupSceneManagementAndLoadGameScene;
-        }
-
         [ContextMenu(nameof(SetupSceneManagementAndLoadGameScene))]
         public void SetupSceneManagementAndLoadGameScene()
         {
@@ -153,16 +148,11 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _unloading = false;
         }
 
-        public IEnumerator LoadMenu()
+        public IEnumerator UnloadCurrentScene()
         {
             var currentScene = GetCurrentScene();
+            Debug.Log($"Unloading current scene {currentScene.Item1.name}");
             yield return UnloadScene(currentScene.Item1);
         }
-
-        public async Task UnloadCurrentScene()
-        {
-            var currentTrack = GetCurrentScene();
-            await SceneManager.UnloadSceneAsync(currentTrack.Item1);
-        }
-    }
+    }   
 }

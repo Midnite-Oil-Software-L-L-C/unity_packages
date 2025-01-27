@@ -71,7 +71,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             return CurrentLobby;
         }
 
-        public async Task CloseLobby()
+        async Task CloseLobby()
         {
             if (CurrentLobby == null)
                 return;
@@ -91,6 +91,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             finally
             {
                 CurrentLobby = null;
+                OnLeftLobby?.Invoke();
             }
         }
         
@@ -110,6 +111,11 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             if (CurrentLobby == null)
                 return;
+            if (IsLocalPlayerLobbyHost)
+            {
+                await CloseLobby();
+                return;                
+            }
 
             StopHeartbeatTimer();
             StopRefreshTimer();
@@ -315,12 +321,12 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         void RefreshLobbies()
         {
             StartCoroutine(RefreshLobbiesCoroutine());
+            RestartRefreshTimer();
         }
 
         IEnumerator RefreshLobbiesCoroutine()
         {
             yield return RefreshLobbiesAsyncWrapper();
-            RestartRefreshTimer();
         }
 
         private IEnumerator RefreshLobbiesAsyncWrapper()

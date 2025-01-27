@@ -60,6 +60,7 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
 
         protected virtual async void Login()
         {
+            // override this to handle the login process
         }
 
         protected void HandlePlayerLoggedIn()

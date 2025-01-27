@@ -36,6 +36,12 @@ namespace MidniteOilSoftware.Multiplayer
             await AddPayloadData();
             NetworkManager.Singleton.StartHost();
         }
+        
+        public async Awaitable StopHostOnServer()
+        {
+            await Awaitable.WaitForSecondsAsync(1f);
+            NetworkManager.Singleton.Shutdown();
+        }
 
         async Task AddPayloadData()
         {

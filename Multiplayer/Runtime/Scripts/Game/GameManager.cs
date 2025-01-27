@@ -25,6 +25,8 @@ namespace MidniteOilSoftware.Multiplayer
         }
 
         public NetworkPlayer LocalPlayer { get; protected set; }
+        
+        public NetworkVariable<bool> IsPlaying { get; private set; } = new();
 
         protected List<NetworkPlayer> Players { get; private set; } = new();
         protected NetworkVariable<int> _currentPlayerTurnIndex = new();
@@ -34,7 +36,10 @@ namespace MidniteOilSoftware.Multiplayer
         {
             NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
             {
-                if (!IsHost) return;
+                if (!IsHost)
+                {
+                    return;
+                }
                 var player = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject
                     .GetComponent<NetworkPlayer>();
                 JoinedGame(player);
@@ -95,17 +100,21 @@ namespace MidniteOilSoftware.Multiplayer
             {
                 case GameState.WaitingForPlayers:
                     AddAlreadyConnectedPlayers();
+                    IsPlaying.Value = false;
                     break;
                 case GameState.GameStarted:
                     _currentPlayerTurnIndex.Value = 0;
+                    IsPlaying.Value = true;
                     SetGameState(GameState.PlayerTurnStart, 0.25f);
                     break;
                 case GameState.GameRestarted:
+                    IsPlaying.Value = true;
                     SetGameState(GameState.PlayerTurnStart, 0.25f);
                     break;
                 case GameState.PlayerTurnEnd:
                     if (IsGameOver())
                     {
+                        IsPlaying.Value = false;
                         SetGameState(GameState.GameOver, 0.25f);
                         return;
                     }
@@ -183,6 +192,18 @@ namespace MidniteOilSoftware.Multiplayer
             Debug.Log($"{toString} resigned");
             SetGameState(GameState.GameOver);
         }
+
+        [Rpc(SendTo.Server)]
+        public void ExitGameServerRpc()
+        {
+            CleanupSession();
+        }
+
+        protected virtual void CleanupSession()
+        {
+            // override this for any custom cleanup logic
+            GameSessionManager.Instance.CleanupSession();
+        }
     }
 
     public enum GameState
@@ -193,7 +214,6 @@ namespace MidniteOilSoftware.Multiplayer
         GameRestarted,
         PlayerTurnStart,
         PlayerTurnEnd,
-        GamePaused,
         GameOver
     }
 }

@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using MidniteOilSoftware.Core;
+using MidniteOilSoftware.Multiplayer.Events;
 using Unity.Netcode;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace MidniteOilSoftware.Multiplayer.Othello
 {
@@ -58,6 +60,14 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             base.Start();
             EventBus.Instance.Subscribe<ChipDroppedEvent>(ChipDroppedEventHandler);
+        }
+
+        void OnDisable()
+        {
+            if (!IsHost)
+            {
+                EventBus.Instance.Raise<LeftGameEvent>(new LeftGameEvent());
+            }
         }
 
         protected override void JoinedGame(NetworkPlayer player)
@@ -138,11 +148,18 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             SetGameState(GameState.GameRestarted);
         }
 
-        [Rpc(SendTo.Server)]
-        public void ExitGameServerRpc()
+        protected override void CleanupSession()
         {
-            // todo implement exit game
-            Debug.LogWarning("Exit game not implemented");
+            Debug.Log("Cleaning up OthelloGameManager session", this);
+            ClearCollections();
+            base.CleanupSession();
         }
+
+        void ClearCollections()
+        {
+            PlayerChipColors.Clear();
+            PlayerPassed.Clear();
+        }
+
     }
 }

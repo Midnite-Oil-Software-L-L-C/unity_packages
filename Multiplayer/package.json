@@ -1,6 +1,6 @@
 {
   "name": "com.midniteoilsoftware.multiplayer",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Midnite Oil Software Multiplayer Boilerplate",
   "description": "Boilerplate for making multiplayer games Midnite Oil Software Unity projects using Unity, Netcode for GameObjects, Lobby and Relay.",
   "category":"Utility",

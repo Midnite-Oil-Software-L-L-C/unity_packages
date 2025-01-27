@@ -28,16 +28,26 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             #endif
             LobbyManager.Instance.ToggleAutoRefreshLobbies(_autoRefreshToggle.isOn);
             LobbyManager.Instance.OnLobbiesUpdated += UpdateLobbiesUI;
+            LobbyManager.Instance.OnLeftLobby += HandleLeftLobby;
         }
 
         void OnDestroy()
         {
             if (LobbyManager.Instance)
+            {
                 LobbyManager.Instance.OnLobbiesUpdated -= UpdateLobbiesUI;
+                LobbyManager.Instance.OnLeftLobby -= HandleLeftLobby;
+            }
+
             _hostButton.onClick.RemoveAllListeners();
             _refreshButton.onClick.RemoveAllListeners();
             _backButton.onClick.RemoveAllListeners();
             _autoRefreshToggle.onValueChanged.RemoveAllListeners();
+        }
+
+        async void HandleLeftLobby()
+        {
+            await LobbyManager.Instance.RefreshLobbiesAsync();
         }
 
         async void HandleRefreshLobbyClick()

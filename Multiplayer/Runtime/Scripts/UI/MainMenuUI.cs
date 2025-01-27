@@ -1,4 +1,6 @@
+using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Authentication;
+using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using TMPro;
 using UnityEngine;
@@ -26,6 +28,20 @@ namespace MidniteOilSoftware.Multiplayer.UI
             _authenticationPanel.PlayerQuit += ExitGame;
             _authenticationPanel.PlayerSignedIn += PlayerLoggedIn;
             _authenticationPanel.gameObject.SetActive(true);
+            EventBus.Instance.Subscribe<LeftGameEvent>(PlayerLeftGame);
+        }
+
+        void PlayerLeftGame(LeftGameEvent e)
+        {
+            Debug.Log($"{e.PlayerId}/{e.ClientOwnerId} left the game");
+            if (LobbyManager.Instance.CurrentLobby != null)
+            {
+                ShowCurrentLobby(LobbyManager.Instance.CurrentLobby);
+            }
+            else
+            {
+                ShowLobbyPanel();
+            }
         }
 
         void LateUpdate()

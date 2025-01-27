@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using MidniteOilSoftware.Multiplayer.Events;
-using Mono.CSharp;
 using QFSW.QC;
 using TMPro;
 using Unity.Netcode;
@@ -75,7 +73,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             RemoveButtonListeners();
             _rematchButton.onClick.AddListener(_gameManager.RematchServerRpc);
-            _exitButton.onClick.AddListener(_gameManager.ExitGameServerRpc);
+            _exitButton.onClick.AddListener(ExitGame);
             _passButtons[0].onClick.AddListener(PlayerPassed);
             _passButtons[1].onClick.AddListener(PlayerPassed);
             _resignButtons[0].onClick.AddListener(PlayerResigned);
@@ -106,6 +104,16 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             _passButtons[_gameManager.CurrentPlayerTurnIndex].gameObject.SetActive(false);
             _gameManager.PlayerPassedServerRpc(_gameManager.LocalPlayerChipColor);
         }
+        
+        void ExitGame()
+        {
+            Debug.Log("GameUI.ExitGame()", this);
+            if (_currentPlayerAnimation != null)
+            {
+                StopCurrentPlayerAnimation();
+            }
+            _gameManager.ExitGameServerRpc();
+        }
 
         void PlayerChipColorsChanged(NetworkListEvent<int> _)
         {
@@ -132,6 +140,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                     UpdatePlayerDisplay();
                     break;
                 case GameState.GameOver:
+                    UpdatePlayerDisplay();
                     ShowGameOverPanel();
                     break;
             }
@@ -185,6 +194,8 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
         void UpdatePlayerDisplay()
         {
+            if (!_gameManager.IsPlaying.Value) return;
+            if (_gameManager.PlayerChipColors is not { Count: 2 }) return;
             _getReadyText.gameObject.SetActive(false);
             ShowPassButton();
             ShowResignButton();
@@ -199,7 +210,6 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                 var playerChipColors = _gameManager.PlayerChipColors;
                 if (playerChipColors is not { Count: 2 })
                 {
-                    Debug.Log("PlayerChipColors is null or not the correct length");
                     continue;
                 }
                 var chipColor = (ChipColor)playerChipColors[i];
