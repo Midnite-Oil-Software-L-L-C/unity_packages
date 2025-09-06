@@ -18,15 +18,7 @@ namespace MidniteOilSoftware.Core.Music
         
         Action<StopAllMusicEvent> _stopAllMusicAction;
 
-        public bool MusicEnabled
-        {
-            get => WeThePeople.GameManager.Instance?.GameStateData?.MusicEnabled ?? true;
-            set
-            {
-                if (WeThePeople.GameManager.Instance?.GameStateData == null) return;
-                WeThePeople.GameManager.Instance.GameStateData.MusicEnabled = value;
-            }
-        }
+        public bool MusicEnabled { get; private set; }
 
 #if UNITY_EDITOR
         [ContextMenu("Play menu music")]

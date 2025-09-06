@@ -30,7 +30,7 @@ namespace MidniteOilSoftware.Core.Audio
         {
             if (_debugMode)
             {
-                if  (!_audioMixerGroup) Debug.LogError($"AudioMixerGroup is not assigned in AudioEvent: {name}", this);
+                if (!_audioMixerGroup) Debug.LogError($"AudioMixerGroup is not assigned in AudioEvent: {name}", this);
                 Debug.Log($"Playing audio event: {name} with volume override: {volumeOverride}", this);
             }
             audioSource.outputAudioMixerGroup = _audioMixerGroup;

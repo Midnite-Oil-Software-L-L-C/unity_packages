@@ -38,7 +38,7 @@ namespace MidniteOilSoftware.Core
                                 if (onRuntimeInitializeMethod != null)
                                 {
                                     onRuntimeInitializeMethod.Invoke(instance, null);
-                                    Debug.Log($"SingletonInitializer successfully initialized singleton: {type.Name}", this);
+                                    Debug.Log($"SingletonInitializer successfully initialized singleton: {type.Name}");
                                 }
                             }
                         }
@@ -49,7 +49,7 @@ namespace MidniteOilSoftware.Core
                     }
                 }
                 
-                Debug.Log("All singleton initialization complete", this);
+                Debug.Log("All singleton initialization complete");
             }
             catch (Exception ex)
             {

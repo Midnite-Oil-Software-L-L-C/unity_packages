@@ -26,10 +26,10 @@ namespace MidniteOilSoftware.Core
             _debugMode = debugMode;
             if (_debugMode)
             {
-                Debug.Log($"Setting initial time to {value}. Previous InitialTime={InitialTime}", this);
+                Debug.Log($"Setting initial time to {value}. Previous InitialTime={InitialTime}");
                 if (value < 0)
                 {
-                    Debug.LogError("Initial time cannot be negative. Setting to 0.", this);
+                    Debug.LogError("Initial time cannot be negative. Setting to 0.");
                     value = 0;
                 }
 
@@ -44,7 +44,7 @@ namespace MidniteOilSoftware.Core
             Time = InitialTime;
             if (_debugMode)
             {
-                Debug.Log($"Starting timer with initial time: {InitialTime}. IsRunning={IsRunning}", this);
+                Debug.Log($"Starting timer with initial time: {InitialTime}. IsRunning={IsRunning}");
             }
             if (IsRunning) return;
             IsRunning = true;
@@ -55,7 +55,7 @@ namespace MidniteOilSoftware.Core
         {
             if (_debugMode)
             {
-                Debug.Log($"Stopping timer. IsRunning={IsRunning}. Time remaining={Time}. invokeStopEvent={invokeStopEvent}", this);
+                Debug.Log($"Stopping timer. IsRunning={IsRunning}. Time remaining={Time}. invokeStopEvent={invokeStopEvent}");
             }
             if (!IsRunning) return;
             IsRunning = false;
