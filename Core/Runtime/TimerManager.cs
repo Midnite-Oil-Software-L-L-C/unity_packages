@@ -9,9 +9,13 @@ namespace MidniteOilSoftware.Core
     {
         readonly Dictionary<Type, ObjectPool<Timer>> _pools = new();
         readonly List<Timer> _timers = new();
-
+        
         public Timer CreateTimer<T>(float value = 0f)
         {
+            if (_enableDebugLog)
+            {
+                Debug.Log($"Creating timer of type {typeof(T).Name} with initial value: {value}", this);
+            }
             var pool = GetTimerPool<T>();
             var timer = pool.Get();
             timer.SetInitialTime(value);
@@ -21,8 +25,13 @@ namespace MidniteOilSoftware.Core
 
         public void ReleaseTimer<T>(Timer timer)
         {
+            if (_enableDebugLog)
+            {
+                Debug.Log($"Releasing timer of type {typeof(T).Name}. IsRunning={timer?.IsRunning}", this);
+            }
             if (timer == null) return;
             if (!_timers.Contains(timer)) return;
+            timer.Stop(false);
             _timers.Remove(timer);
             var pool = GetTimerPool<T>();
             try
@@ -31,7 +40,10 @@ namespace MidniteOilSoftware.Core
             }
             catch (Exception e)
             {
-                Debug.LogError($"Failed to release timer: {e.Message}");
+                if (_enableDebugLog)
+                {
+                    Debug.LogError($"Failed to release timer of type {typeof(T).Name}: {e.Message}", this);
+                }
             }
         }
 
@@ -39,20 +51,39 @@ namespace MidniteOilSoftware.Core
         {
             var type = typeof(T);
             if (!_pools.ContainsKey(type))
-            {
-                _pools[type] = new ObjectPool<Timer>(() => { return (Timer)Activator.CreateInstance(typeof(T)); });
-            }
+                _pools[type] = new ObjectPool<Timer>(() =>
+                {
+                    if (type == typeof(CountdownTimer))
+                        return new CountdownTimer();
+                    if (type == typeof(StopwatchTimer))
+                        return new StopwatchTimer();
+                    throw new ArgumentException($"Unsupported timer type: {type.FullName}");
+                });
 
             return _pools[type];
         }
 
         void Update()
         {
-            var timers = _timers.ToArray();
-            foreach (var timer in timers)
+            for (var i = _timers.Count - 1; i >= 0; i--)
             {
-                timer.Tick(Time.deltaTime);
+                if (i < _timers.Count)
+                    _timers[i].Tick(Time.deltaTime);
             }
+        }
+        
+        protected override void OnRuntimeInitialize()
+        {
+            base.OnRuntimeInitialize();
+    
+            // TimerManager-specific initialization logic
+            if (_enableDebugLog)
+            {
+                Debug.Log("TimerManager runtime initialization complete", this);
+            }
+    
+            _pools.Clear();
+            _timers.Clear();            
         }
     }
 }

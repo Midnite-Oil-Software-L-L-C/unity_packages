@@ -1,4 +1,6 @@
 using UnityEngine;
+using System;
+using UnityEngine.Serialization;
 
 namespace MidniteOilSoftware.Core
 {
@@ -8,26 +10,30 @@ namespace MidniteOilSoftware.Core
     /// <typeparam name="T">The type of the singleton MonoBehaviour.</typeparam>
     public class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBehaviour
     {
-        private static T _instance;
-        private static readonly object _lock = new();
-        private static bool _isApplicationQuitting;
+        [SerializeField] bool _isPersistent = true;
+        [FormerlySerializedAs("_debugMode")] [SerializeField] protected bool _enableDebugLog = false;
+
+        static T _instance;
+        static readonly object _lock = new();
+        static bool _isApplicationQuitting;
 
         public static T Instance
         {
             get
             {
-                if (_isApplicationQuitting)
-                {
-                    return null;
-                }
+                // If the application is quitting, we should not create or return an instance
+                if (_isApplicationQuitting) return null;
 
                 lock (_lock)
                 {
-                    if (_instance != null) return _instance;
+                    // If an instance already exists, return it
+                    if (_instance) return _instance;
 
+                    // Try to find an existing instance in the scene
                     _instance = FindFirstObjectByType<T>();
 
-                    return _instance != null ? _instance : CreateSingletonInstance();
+                    // If no instance found, create a new one
+                    return _instance ? _instance : CreateSingletonInstance();
                 }
             }
         }
@@ -35,39 +41,151 @@ namespace MidniteOilSoftware.Core
         static T CreateSingletonInstance()
         {
             var singletonObject = new GameObject(typeof(T).Name);
-            _instance = singletonObject.AddComponent<T>();
             DontDestroyOnLoad(singletonObject);
+            _instance = singletonObject.AddComponent<T>();
             return _instance;
         }
+
+        // Using an Action to allow external classes to subscribe to application quitting event
+        public static event Action OnApplicationQuittingEvent;
 
         protected virtual void OnApplicationQuit()
         {
             _isApplicationQuitting = true;
+            OnApplicationQuittingEvent?.Invoke();
         }
 
         protected virtual void OnDestroy()
         {
-            if (_instance == this)
-            {
-                _isApplicationQuitting = true;
-            }
+            // Only clear the instance if this is the singleton instance and the application is quitting
+            if (_instance != this || !_isApplicationQuitting) return;
+            _instance = null;
+            // Unsubscribe from the static event to prevent memory leaks
+            OnApplicationQuittingEvent -= OnApplicationQuittingInternal;
         }
 
-        // Optional: Override Awake in subclasses to add initialization logic
         protected virtual void Awake()
         {
-            // Prevent multiple instances from existing
+            #if !UNITY_EDITOR
+            _enableDebugLog = false; // Disable debug logging in non-editor builds
+            #endif
+            var typeName = typeof(T).Name;
+            var instanceId = gameObject.GetInstanceID();
+
+            if (_enableDebugLog)
+            {
+                Debug.Log($"[{typeName}] Awake called on GameObject: {gameObject.name} (ID: {instanceId})", this);
+            }
+
+            // This is crucial for handling domain reload disabled
             if (_instance == null)
             {
                 _instance = this as T;
-                DontDestroyOnLoad(gameObject);
+
+                if (_enableDebugLog)
+                {
+                    Debug.Log($"[{typeName}] Setting as singleton instance: {gameObject.name}", this);
+                }
+
+                // Subscribe once to handle application quitting
+                OnApplicationQuittingEvent -= OnApplicationQuittingInternal;
+                OnApplicationQuittingEvent += OnApplicationQuittingInternal;
+
+                // Enhanced debugging for DontDestroyOnLoad
+                if (!_isPersistent) return;
+                var sceneName = gameObject.scene.name;
+
+                if (_enableDebugLog)
+                {
+                    Debug.Log($"[{typeName}] Current scene: '{sceneName}', attempting DontDestroyOnLoad", this);
+                }
+
+                if (sceneName != "DontDestroyOnLoad")
+                {
+                    // Add a check for existing DontDestroyOnLoad objects of the same type
+                    var existingInstances =
+                        FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                    var dontDestroyInstances = 0;
+
+                    foreach (var instance in existingInstances)
+                    {
+                        if (instance.gameObject.scene.name != "DontDestroyOnLoad") continue;
+                        dontDestroyInstances++;
+                        if (_enableDebugLog)
+                        {
+                            Debug.LogWarning(
+                                $"[{typeName}] Found existing DontDestroyOnLoad instance: {instance.gameObject.name}",
+                                this);
+                        }
+                    }
+
+                    if (dontDestroyInstances > 0)
+                    {
+                        if (_enableDebugLog) Debug.LogError(
+                            $"[{typeName}] Cannot call DontDestroyOnLoad - {dontDestroyInstances} instances already exist in DontDestroyOnLoad scene!",
+                            this);
+                        return;
+                    }
+
+                    if (_enableDebugLog)
+                    {
+                        Debug.Log(
+                            $"[{typeName}] Calling DontDestroyOnLoad on {gameObject.name}", this);
+                    }
+                    #if UNITY_EDITOR
+                    if (Application.isPlaying)
+                        UnityEditor.SceneVisibilityManager.instance.Show(gameObject, false);
+                    #endif
+                    DontDestroyOnLoad(gameObject);
+
+                    if (_enableDebugLog)
+                    {
+                        Debug.Log($"[{typeName}] Successfully called DontDestroyOnLoad", this);
+                    }
+                }
+                else if (_enableDebugLog)
+                {
+                    Debug.Log($"[{typeName}] GameObject already in DontDestroyOnLoad scene", this);
+                }
             }
             else if (_instance != this)
             {
-                Debug.LogWarning(
-                    $"[SingletonMonoBehaviour] Another instance of '{typeof(T)}' exists. Destroying: {gameObject.name}");
+                if (_enableDebugLog)
+                {
+                    Debug.LogWarning(
+                        $"[{typeName}] Another instance exists. Destroying: {gameObject.name}", this);
+                }
+
                 Destroy(gameObject);
             }
+            else if (_enableDebugLog)
+            {
+                Debug.Log($"[{typeName}] This is the existing singleton instance", this);
+            }
+        }
+
+        // Internal method to handle application quitting, subscribed to the static event
+        static void OnApplicationQuittingInternal()
+        {
+            _isApplicationQuitting = true;
+            OnApplicationQuittingEvent -= OnApplicationQuittingInternal;
+        }
+
+        // REMOVED: StaticRuntimeInitialize method - this doesn't work with generic classes
+        // The initialization is now handled by the SingletonInitializer class
+
+        protected virtual void OnRuntimeInitialize()
+        {
+            // Base implementation - can be overridden by derived classes
+            if (_enableDebugLog)
+            {
+                Debug.Log($"Runtime initializing {typeof(T).Name}", this);
+            }
+            // Resetting _isApplicationQuitting here is critical for domain reload disabled scenarios
+            _isApplicationQuitting = false;
+            // Ensure we are subscribed to the quitting event if not already
+            OnApplicationQuittingEvent -= OnApplicationQuittingInternal; // Unsubscribe first to prevent double subscription
+            OnApplicationQuittingEvent += OnApplicationQuittingInternal;
         }
     }
 }

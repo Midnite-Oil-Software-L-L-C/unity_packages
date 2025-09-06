@@ -1,10 +1,10 @@
 {
   "name": "com.midniteoilsoftware.core",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "displayName": "Midnite Oil Software Core",
   "description": "Core components for Midnite Oil Software Unity projects.",
   "category":"Utility", 
-  "unity": "6000.0",
+  "unity": "6000.2.1f1",
   "author": {
     "name": "Midnite Oil Software L.L.C.",
     "url": "https://github.com/Midnite-Oil-Software-L-L-C"
