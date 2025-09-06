@@ -18,7 +18,7 @@ namespace MidniteOilSoftware.Core.Music
         
         Action<StopAllMusicEvent> _stopAllMusicAction;
 
-        public bool MusicEnabled { get; private set; }
+        public bool MusicEnabled { get; private set; } = true;
 
 #if UNITY_EDITOR
         [ContextMenu("Play menu music")]
