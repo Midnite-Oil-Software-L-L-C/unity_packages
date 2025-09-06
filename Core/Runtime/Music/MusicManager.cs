@@ -18,8 +18,6 @@ namespace MidniteOilSoftware.Core.Music
         
         Action<StopAllMusicEvent> _stopAllMusicAction;
 
-        public bool MusicEnabled { get; private set; } = true;
-
 #if UNITY_EDITOR
         [ContextMenu("Play menu music")]
         public void PlayMenuMusic()
@@ -54,7 +52,6 @@ namespace MidniteOilSoftware.Core.Music
 
         public void PlayMusic(string musicGroupName)
         {
-            if (!MusicEnabled) return;
             _currentMusicGroup = GetMusicGroup(musicGroupName);
             PlayNextTrack();
         }
@@ -76,7 +73,6 @@ namespace MidniteOilSoftware.Core.Music
 
         void PlayNextTrack()
         {
-            if (!MusicEnabled) return;
             var clip = _currentMusicGroup?.GetNextMusicClip();
             if (!clip) return;
             ToggleCurrentMix();
@@ -154,17 +150,6 @@ namespace MidniteOilSoftware.Core.Music
         void OnPlayMusicEvent(PlayMusicEvent playMusicEvent)
         {
             PlayMusic(playMusicEvent.MusicGroupName);
-        }
-
-        public void EnableMusic(bool musicEnabled = true)
-        {
-            MusicEnabled = musicEnabled;
-            if (!MusicEnabled)
-            {
-                StopAllMusic();
-                return;
-            }
-            PlayNextTrack();
         }
     }
 }
