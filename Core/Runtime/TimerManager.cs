@@ -55,7 +55,9 @@ namespace MidniteOilSoftware.Core
                 {
                     if (type == typeof(CountdownTimer))
                         return new CountdownTimer();
-                    return type == typeof(StopwatchTimer) ? new StopwatchTimer() : null;
+                    if (type == typeof(StopwatchTimer))
+                        return new StopwatchTimer();
+                    throw new ArgumentException($"Unsupported timer type: {type.FullName}");
                 });
 
             return _pools[type];
