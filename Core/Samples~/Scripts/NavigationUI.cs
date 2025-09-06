@@ -1,3 +1,4 @@
+using System.Collections;
 using MidniteOilSoftware.Core.Music;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,8 +10,9 @@ namespace MidniteOilSoftware.Core.Demo
     {
         [SerializeField] string _music = "Menu Music", _nextScene = "Game";
  
-        void Start()
+        IEnumerator Start()
         {
+            yield return null; // Wait a frame to ensure MusicManager is initialized
             EventBus.Instance.Raise(new PlayMusicEvent(_music)); 
         }
 
@@ -26,7 +28,7 @@ namespace MidniteOilSoftware.Core.Demo
 #if UNITY_EDITOR
                 UnityEditor.EditorApplication.isPlaying = false;
 #else
-            Application.Quit();
+                Application.Quit();
 #endif
             }
         }

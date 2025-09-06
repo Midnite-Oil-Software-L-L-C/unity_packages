@@ -22,19 +22,19 @@ namespace MidniteOilSoftware.Core.Music
         [ContextMenu("Play menu music")]
         public void PlayMenuMusic()
         {
-            PlayMusic("Main Menu Music");
+            PlayMusic("Menu Music");
         }
 
         [ContextMenu("Play game music")]
         public void PlayGameMusic()
         {
-            PlayMusic("Game Play Music");
+            PlayMusic("Game Music");
         }
 
         [ContextMenu("Play game over music")]
         public void PlayGameOverMusic()
         {
-            PlayMusic("GameOver");
+            PlayMusic("Game Over Music");
         }
 
         [ContextMenu("Stop all music")]
