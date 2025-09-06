@@ -11,22 +11,41 @@ namespace MidniteOilSoftware.Core
 
         public Action OnTimerStart = delegate { };
         public Action OnTimerStop = delegate { };
+        bool _debugMode;
 
         protected Timer()
         {
             IsRunning = false;
+#if !UNITY_EDITOR
+            _debugMode = false;
+#endif
         }
 
-        public void SetInitialTime(float value) => InitialTime = value;
+        public void SetInitialTime(float value, bool debugMode = false)
+        {
+            _debugMode = debugMode;
+            if (_debugMode)
+            {
+                Debug.Log($"Setting initial time to {value}. Previous InitialTime={InitialTime}", this);
+                if (value < 0)
+                {
+                    Debug.LogError("Initial time cannot be negative. Setting to 0.", this);
+                    value = 0;
+                }
+
+            }
+
+            InitialTime = value;
+        }
 
         public void Start(float? initialTime = null)
         {
-            if (initialTime != null)
-            {
-                InitialTime = (float)initialTime;
-            }
-
+            if (initialTime != null) InitialTime = (float)initialTime;
             Time = InitialTime;
+            if (_debugMode)
+            {
+                Debug.Log($"Starting timer with initial time: {InitialTime}. IsRunning={IsRunning}", this);
+            }
             if (IsRunning) return;
             IsRunning = true;
             OnTimerStart.Invoke();
@@ -34,16 +53,24 @@ namespace MidniteOilSoftware.Core
 
         public void Stop(bool invokeStopEvent = true)
         {
+            if (_debugMode)
+            {
+                Debug.Log($"Stopping timer. IsRunning={IsRunning}. Time remaining={Time}. invokeStopEvent={invokeStopEvent}", this);
+            }
             if (!IsRunning) return;
             IsRunning = false;
-            if (invokeStopEvent)
-            {
-                OnTimerStop.Invoke();
-            }
-        }   
+            if (invokeStopEvent) OnTimerStop.Invoke();
+        }
 
-        public void Resume() => IsRunning = true;
-        public void Pause() => IsRunning = false;
+        public void Resume()
+        {
+            IsRunning = true;
+        }
+
+        public void Pause()
+        {
+            IsRunning = false;
+        }
 
         public abstract void Tick(float deltaTime);
     }
@@ -56,20 +83,17 @@ namespace MidniteOilSoftware.Core
 
         public override void Tick(float deltaTime)
         {
-            if (IsRunning && Time > 0)
-            {
-                Time -= deltaTime;
-            }
+            if (IsRunning && Time > 0) Time -= deltaTime;
 
-            if (IsRunning && Time <= 0)
-            {
-                Stop();
-            }
+            if (IsRunning && Time <= 0) Stop();
         }
 
         public bool IsFinished => Time <= 0;
 
-        public void Reset() => Time = InitialTime;
+        public void Reset()
+        {
+            Time = InitialTime;
+        }
 
         public void Reset(float newTime)
         {
@@ -82,14 +106,17 @@ namespace MidniteOilSoftware.Core
     {
         public override void Tick(float deltaTime)
         {
-            if (IsRunning)
-            {
-                Time += deltaTime;
-            }
+            if (IsRunning) Time += deltaTime;
         }
 
-        public void Reset() => Time = 0;
+        public void Reset()
+        {
+            Time = 0;
+        }
 
-        public float GetTime() => Time;
+        public float GetTime()
+        {
+            return Time;
+        }
     }
 }

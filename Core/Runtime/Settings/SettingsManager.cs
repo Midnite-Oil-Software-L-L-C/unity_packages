@@ -69,5 +69,18 @@ namespace MidniteOilSoftware.Core.Settings
             PlayerPrefs.Save();
             EventBus.Instance?.Raise(new SettingsSavedEvent());
         }
+        
+        protected override void OnRuntimeInitialize()
+        {
+            base.OnRuntimeInitialize();
+    
+            if (_enableDebugLog)
+            {
+                Debug.Log("SettingsManager runtime initialization complete", this);
+            }
+    
+            // Ensure settings are loaded during runtime initialization
+            LoadSettings();
+        }        
     }
 }
