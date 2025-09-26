@@ -148,6 +148,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46cd1ef78e9cf6f429ccef9691c3f920, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isPersistent: 1
+  _enableDebugLog: 0
 --- !u!4 &325063197
 Transform:
   m_ObjectHideFlags: 0
@@ -200,7 +202,7 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -219,6 +221,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
+  _enableDebugLog: 1
 --- !u!4 &409654490
 Transform:
   m_ObjectHideFlags: 0
@@ -226,6 +229,78 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 409654487}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &470397644
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 470397647}
+  - component: {fileID: 470397645}
+  - component: {fileID: 470397646}
+  m_Layer: 0
+  m_Name: Player Registry
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &470397645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470397644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 2618039372
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 0
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &470397646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470397644}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf0f0e9c982c0554facb583a4beac708, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: MidniteOilSoftware.Multiplayer::MidniteOilSoftware.Multiplayer.PlayerRegistry
+  ShowTopMostFoldoutHeaderGroup: 1
+  _enableDebugLog: 1
+--- !u!4 &470397647
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 470397644}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -271,7 +346,7 @@ MonoBehaviour:
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
+  SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
   DontDestroyWithOwner: 0
   AutoObjectParentSync: 1
@@ -290,10 +365,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ShowTopMostFoldoutHeaderGroup: 1
-  _menuScene: {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
+  _enableDebugLog: 1
+  _mainMenuScene: {fileID: 102900000, guid: 9fc0d4010bbf28b4594072e72b8655ab, type: 3}
   _gameScene: {fileID: 102900000, guid: 1070d0fcdc24d72468d541a7d4d85b54, type: 3}
-  _menuSceneName: Main Menu
   _gameSceneName: Othello
+  _mainMenuSceneName: Main Menu
 --- !u!4 &503695636
 Transform:
   m_ObjectHideFlags: 0
@@ -309,51 +385,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &721227678
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 721227679}
-  - component: {fileID: 721227680}
-  m_Layer: 0
-  m_Name: Lobby Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &721227679
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721227678}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &721227680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 721227678}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a422caba06ddc4a4bb7c11ba6e85891b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _maxPlayers: 2
 --- !u!1 &777206614
 GameObject:
   m_ObjectHideFlags: 0
@@ -400,8 +431,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95bb9461efaa65049b1766fb74669672, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isPersistent: 1
+  _enableDebugLog: 0
   _gameSessionInitializer: {fileID: 777206617}
   _gameSessionCleanup: {fileID: 777206618}
+  _cleanupDelay: 1
 --- !u!114 &777206617
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -414,6 +448,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a37fa87ec4fba94daaeaa00115f582a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _maxPlayers: 2
+  _enableDebugLog: 1
 --- !u!114 &777206618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -455,6 +491,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a39eb4af7df41ef85e729b4c9f90782, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isPersistent: 1
+  _enableDebugLog: 0
 --- !u!4 &848142709
 Transform:
   m_ObjectHideFlags: 0
@@ -499,6 +537,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8071c40603e8b294eb578fd5a3e74dfd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _isPersistent: 1
+  _enableDebugLog: 1
 --- !u!4 &939749369
 Transform:
   m_ObjectHideFlags: 0
@@ -543,6 +583,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ccc0fdcb0f147b4ba1a69934645a550, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _debugLog: 1
 --- !u!4 &1069001950
 Transform:
   m_ObjectHideFlags: 0
@@ -644,6 +685,7 @@ MonoBehaviour:
     NetworkTopology: 0
     UseCMBService: 0
     AutoSpawnPlayerPrefabClientSide: 1
+    NetworkMessageMetrics: 1
     NetworkProfilingMetrics: 1
     OldPrefabList: []
   RunInBackground: 1
@@ -675,14 +717,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e3914f1cd7c09c4bae9745beac63e6d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _debugLog: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 939749369}
   - {fileID: 325063197}
-  - {fileID: 721227679}
   - {fileID: 1702304911}
+  - {fileID: 470397647}
   - {fileID: 503695636}
   - {fileID: 1069001950}
   - {fileID: 848142709}

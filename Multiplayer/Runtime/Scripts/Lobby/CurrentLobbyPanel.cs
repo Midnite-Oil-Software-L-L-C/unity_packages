@@ -1,4 +1,3 @@
-using System;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.UI;
@@ -18,24 +17,27 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         [SerializeField] Button _renameGameButton, _startGameButton;
         [SerializeField] LobbyPlayerPanel _playerPanelPrefab;
         [SerializeField] Color _readyColor, _notReadyColor;
+        [SerializeField] bool _enableDebugLog = true;
 
         Timer _refreshTimer;
 
         public void Initialize()
         {
             Debug.Log($"Initialing CurrentLobbyPanel", this);
-            _gameNameText.text = LobbyManager.Instance.CurrentLobby.Name;
             _gameNameComponent.SetActive(true);
             _editGameName.gameObject.SetActive(false);
             _startingGamePanel.SetActive(false);
             SubscribeToButtonHandlers();
-            SubscribeToLobbyEvents();
             SubscribeToGameEvents();
+            // The logic for updating the lobby state should now be handled by events from the SessionManager
+            // The old LobbyManager.Instance.OnJoinedLobby, OnLeftLobby, and OnCurrentLobbyUpdated events are now handled differently
             InitializeRefreshTimer();
         }
 
         void OnEnable()
         {
+            // Note: UpdateButtons() and UpdatePlayers() now need to use the SessionManager.ActiveSession
+            // as the source of truth for player data and host status.
             UpdateButtons();
             UpdatePlayers();
         }
@@ -43,7 +45,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         void OnDisable()
         {
             UnsubscribeFromButtonHandlers();
-            UnsubscribeFromLobbyEvents();
+            UnsuscribeFromGameEvents();
             ReleaseRefreshTimer();
         }
 
@@ -51,18 +53,16 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             _leaveGameButton.onClick.AddListener(() =>
             {
-                Debug.Log($"Leaving lobby {LobbyManager.Instance.CurrentLobby.Name}");
-                LobbyManager.Instance.LeaveCurrentLobby();
+                SessionManager.Instance.LeaveSession();
             });
-            _renameGameButton.onClick.AddListener(EditGameName);
             _startGameButton.onClick.AddListener(TryStartGame);
         }
-        
+
         void SubscribeToGameEvents()
         {
             EventBus.Instance.Subscribe<GameStateChangedEvent>(HandleGameStateChanged);
         }
-        
+
         void UnsuscribeFromGameEvents()
         {
             EventBus.Instance.Unsubscribe<GameStateChangedEvent>(HandleGameStateChanged);
@@ -71,75 +71,39 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         void UnsubscribeFromButtonHandlers()
         {
             _leaveGameButton.onClick.RemoveAllListeners();
-            _renameGameButton.onClick.RemoveAllListeners();
             _startGameButton.onClick.RemoveAllListeners();
-        }
-
-        void SubscribeToLobbyEvents()
-        {
-            LobbyManager.Instance.OnJoinedLobby += OnJoinedLobby;
-            LobbyManager.Instance.OnLeftLobby += OnLeftLobby;
-            LobbyManager.Instance.OnCurrentLobbyUpdated += CurrentLobbyUpdated;
-        }
-
-        void UnsubscribeFromLobbyEvents()
-        {
-            Debug.Log("Unsubscribing from lobby events");
-            if (!LobbyManager.Instance) return;
-            LobbyManager.Instance.OnJoinedLobby -= OnJoinedLobby;
-            LobbyManager.Instance.OnLeftLobby -= OnLeftLobby;
-            LobbyManager.Instance.OnCurrentLobbyUpdated -= CurrentLobbyUpdated;
         }
 
         void InitializeRefreshTimer()
         {
             _refreshTimer = TimerManager.Instance.CreateTimer<CountdownTimer>();
-            _refreshTimer.OnTimerStop += CurrentLobbyUpdated;
+            _refreshTimer.OnTimerStop += UpdateLobbyData;
             _refreshTimer.Start(0.5f);
         }
 
         void ReleaseRefreshTimer()
         {
-            _refreshTimer.OnTimerStop -= CurrentLobbyUpdated;
+            _refreshTimer.OnTimerStop -= UpdateLobbyData;
             TimerManager.Instance.ReleaseTimer<CountdownTimer>(_refreshTimer);
+        }
+        
+        void UpdateLobbyData()
+        {
+            if (SessionManager.Instance.ActiveSession == null) return;
+            UpdatePlayers();
+            UpdateButtons();
+            // Restart timer
+            _refreshTimer.Start(0.5f);
         }
 
         void UpdateButtons()
         {
-            _startGameButton.gameObject.SetActive(LobbyManager.Instance.IsLocalPlayerLobbyHost);
-            _startGameButton.interactable = LobbyManager.Instance.IsLocalPlayerLobbyHost &&
-                                            LobbyManager.Instance.CurrentLobby.AllPlayersReady();
-            _renameGameButton.interactable = LobbyManager.Instance.IsLocalPlayerLobbyHost;
+            var activeSession = SessionManager.Instance.ActiveSession;
+            var isHost = activeSession?.IsHost ?? false;
+            var enoughPlayers = activeSession != null && activeSession.Players.Count >= activeSession.MaxPlayers;
+            _startGameButton.gameObject.SetActive(isHost);
+            _startGameButton.interactable = isHost && enoughPlayers;
         }
-
-        #region Lobby events
-
-        void OnJoinedLobby(Unity.Services.Lobbies.Models.Lobby game)
-        {
-            gameObject.SetActive(true);
-            _gameNameText.text = game.Name;
-            HandleLobbyStateChanged();
-        }
-
-        void OnLeftLobby()
-        {
-            Debug.Log("Left lobby");
-            gameObject.SetActive(false);
-        }
-
-        void CurrentLobbyUpdated()
-        {
-            _gameNameText.text = LobbyManager.Instance.CurrentLobby.Name;
-            HandleLobbyStateChanged();
-        }
-
-        void HandleLobbyStateChanged()
-        {
-            UpdatePlayers();
-            UpdateButtons();
-        }
-
-        #endregion
 
         #region Game events
         void HandleGameStateChanged(GameStateChangedEvent e)
@@ -154,70 +118,34 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
         }
         #endregion Game events
-        
+
         #region Button events
-
-        void EditGameName()
-        {
-            _gameNameComponent.SetActive(false);
-            _editGameName.EditConfirmed += OnGameNameChanged;
-            _editGameName.EditCancelled += OnEditGameNameCancelled;
-            _editGameName.gameObject.SetActive(true);
-            _editGameName.Initialize(_gameNameText.text);
-        }
-
-        void OnEditGameNameCancelled()
-        {
-            DisableEditGameComponent();
-        }
-
-        void OnGameNameChanged(string newGameName)
-        {
-            if (string.Compare(newGameName, _gameNameText.text, StringComparison.InvariantCulture) != 0)
-            {
-                LobbyManager.Instance.RenameLobby(newGameName);
-            }
-
-            DisableEditGameComponent();
-        }
-
-        void DisableEditGameComponent()
-        {
-            _editGameName.gameObject.SetActive(false);
-            _editGameName.EditConfirmed -= OnGameNameChanged;
-            _editGameName.EditCancelled -= OnEditGameNameCancelled;
-            _gameNameComponent.SetActive(true);
-        }
-
         async void TryStartGame()
         {
-            try
-            {
-                _startGameButton.interactable = false;
-                _startingGamePanel.SetActive(true);
-                await LobbyManager.Instance.RequestStartGame();
-                _startingGamePanel.SetActive(false);
-                gameObject.SetActive(false);
-            }
-            catch (Exception e)
-            {
-                _startingGamePanel.SetActive(false);
-                _startGameButton.interactable = true;
-                Debug.LogError(e);
-            }
+            if (_enableDebugLog) Logwin.Log("CurrentLobbyPanel", "TryStartGame called", "Multiplayer");
+            _startGameButton.interactable = false;
+            _startingGamePanel.SetActive(true);
+           
+            GameSessionManager.Instance.InitializeSession();
+            _startingGamePanel.SetActive(false);
+            gameObject.SetActive(false);
         }
 
         #endregion Button events
 
         void UpdatePlayers()
         {
-            Debug.Log($"Lobby {LobbyManager.Instance.CurrentLobby.Name} Updated", this);
+            var activeSession = SessionManager.Instance.ActiveSession;
+            if (activeSession == null) return;
+            
+            _gameNameText.text = activeSession.Name;
+            
             for (var i = _playersRoot.childCount - 1; i >= 0; i--)
                 Destroy(_playersRoot.GetChild(i).gameObject);
 
-            _playersCountText.text = LobbyManager.Instance.CurrentLobby.Players.Count +
-                                     " / " + LobbyManager.Instance.CurrentLobby.MaxPlayers;
-            foreach (var player in LobbyManager.Instance.CurrentLobby.Players)
+            _playersCountText.text = activeSession.Players.Count + " / " + activeSession.MaxPlayers;
+            
+            foreach (var player in activeSession.Players)
             {
                 var playerPanel = Instantiate(_playerPanelPrefab, _playersRoot);
                 playerPanel.Bind(player);

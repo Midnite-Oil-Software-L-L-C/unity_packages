@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Events;
-using MidniteOilSoftware.Multiplayer.Lobby;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,41 +8,36 @@ namespace MidniteOilSoftware.Multiplayer
 {
     public class GameManager : NetworkBehaviour
     {
-        public GameState CurrentState { get; protected set; } = GameState.None;
+        [SerializeField] protected bool _enableDebugLog = true;
+        
+        public GameState CurrentState { get; private set; } = GameState.None;
         public int CurrentPlayerTurnIndex => _currentPlayerTurnIndex.Value;
         public NetworkPlayer CurrentPlayer
         {
             get
             {
-                if (CurrentPlayerTurnIndex >= Players.Count)
+                if (CurrentPlayerTurnIndex < Players.Count) return Players[CurrentPlayerTurnIndex];
+                if (_enableDebugLog)
                 {
-                    Debug.LogError($"CurrentPlayerTurnIndex {CurrentPlayerTurnIndex} out of range of {Players.Count} players");
-                    return null;
+                    Logwin.LogError("GameManager",
+                        $"CurrentPlayerTurnIndex {CurrentPlayerTurnIndex} out of range of {Players.Count} players",
+                        "Multiplayer");
                 }
-                return Players[CurrentPlayerTurnIndex];
+                return null;
             }
         }
 
-        public NetworkPlayer LocalPlayer { get; protected set; }
+        public NetworkPlayer LocalPlayer { get; private set; }
         
         public NetworkVariable<bool> IsPlaying { get; private set; } = new();
 
-        protected List<NetworkPlayer> Players { get; private set; } = new();
+        protected List<NetworkPlayer> Players { get; set; } = new();
         protected NetworkVariable<int> _currentPlayerTurnIndex = new();
-        Unity.Services.Lobbies.Models.Lobby Game => LobbyManager.Instance.CurrentLobby;
 
         protected virtual void Start()
         {
-            NetworkManager.Singleton.OnClientConnectedCallback += (clientId) =>
-            {
-                if (!IsHost)
-                {
-                    return;
-                }
-                var player = NetworkManager.Singleton.ConnectedClients[clientId].PlayerObject
-                    .GetComponent<NetworkPlayer>();
-                JoinedGame(player);
-            };
+            // Remove the direct NetworkManager callback - PlayerRegistry handles this now
+            EventBus.Instance.Subscribe<GameStartedEvent>(HandleGameStarted);
             SetGameState(GameState.WaitingForPlayers);
         }
 
@@ -78,8 +72,13 @@ namespace MidniteOilSoftware.Multiplayer
 
         protected virtual void OnGameStateChanged(GameState previousState, GameState newState)
         {
-            Debug.Log(
-                $"GameState changed from {previousState} to {newState} IsServer = {IsServer} IsClient = {IsClient} IsHost = {IsHost}");
+            if (_enableDebugLog)
+            {
+                Logwin.Log(
+                    "GameManager",
+                    $"GameState changed from {previousState} to {newState} IsServer = {IsServer} IsClient = {IsClient} IsHost = {IsHost}",
+                    "Multiplayer");
+            }
 
             if (IsServer)
             {
@@ -90,7 +89,10 @@ namespace MidniteOilSoftware.Multiplayer
                 ClientOnlyHandleGameStateChange();
             }
 
-            Debug.Log($"Raising GameStateChangedEvent({newState})", this);
+            if (_enableDebugLog)
+            {
+                Logwin.Log("GameManager", $"Raising GameStateChangedEvent({newState})", "Multiplayer");
+            }
             EventBus.Instance.Raise(new GameStateChangedEvent(newState));
         }
 
@@ -99,7 +101,7 @@ namespace MidniteOilSoftware.Multiplayer
             switch (CurrentState)
             {
                 case GameState.WaitingForPlayers:
-                    AddAlreadyConnectedPlayers();
+                    // PlayerRegistry handles player tracking automatically
                     IsPlaying.Value = false;
                     break;
                 case GameState.GameStarted:
@@ -129,7 +131,8 @@ namespace MidniteOilSoftware.Multiplayer
             switch (CurrentState)
             {
                 case GameState.GameStarted:
-                    GetConnectedPlayers();
+                    // Get players from PlayerRegistry instead of direct NetworkManager access
+                    GetPlayersFromRegistry();
                     break;
             }
         }
@@ -141,51 +144,31 @@ namespace MidniteOilSoftware.Multiplayer
 
         protected virtual void JoinedGame(NetworkPlayer player)
         {
-            if (!IsHost) return;
-
-            if (Players.Contains(player))
-            {
-                Debug.Log($"{player.PlayerName} already added. IsServer = {IsServer} IsClient = {IsClient} IsHost = {IsHost}");
-                return;
-            }
-
-            if (player.IsLocalPlayer)
-            {
-                LocalPlayer = player;
-            }
-            Players.Add(player);
-            var expectedPlayers = Game.Players.Count;
-            Debug.Log($"Adding {player} on server. {Players.Count}/{expectedPlayers} added");
-            if (Players.Count != expectedPlayers) return;
-            SetGameState(GameState.GameStarted);
+            if (_enableDebugLog)
+                Logwin.Log("GameManager", 
+                    $"Player joined game: {player.PlayerName.Value}", "Multiplayer");
         }
         
-        void GetConnectedPlayers()
+        void GetPlayersFromRegistry()
         {
-            if (IsHost) return;
-            Debug.Log($"Getting connected players ({NetworkManager.Singleton.ConnectedClientsList.Count})");
-            foreach (var player in NetworkManager.Singleton.ConnectedClientsList)
+            if (IsHost) return; // Host already has players from HandleGameStarted
+
+            if (PlayerRegistry.Instance)
             {
-                var networkPlayer = player.PlayerObject.GetComponent<NetworkPlayer>();
-                if (networkPlayer.IsLocalPlayer)
-                {
-                    LocalPlayer = networkPlayer;
-                }
-                Players.Add(networkPlayer);
+                Players = PlayerRegistry.Instance.GetPlayers();
+                LocalPlayer = PlayerRegistry.Instance.LocalPlayer;
+                
+                if (_enableDebugLog)
+                    Logwin.Log("GameManager", 
+                        $"Client retrieved {Players.Count} players from PlayerRegistry", "Multiplayer");
+            }
+            else
+            {
+                if (_enableDebugLog)
+                    Logwin.LogError("GameManager", "PlayerRegistry.Instance is null on client!", "Multiplayer");
             }
         }
 
-        void AddAlreadyConnectedPlayers()
-        {
-            if (!IsHost) return;
-            Debug.Log($"Adding already connected players ({NetworkManager.Singleton.ConnectedClientsList.Count})");
-            foreach (var player in NetworkManager.Singleton.ConnectedClientsList)
-            {
-                var networkPlayer = player.PlayerObject.GetComponent<NetworkPlayer>();
-                JoinedGame(networkPlayer);
-            }
-        }
-        
         [Rpc(SendTo.Server)]
         public virtual void PlayerResignedServerRpc(ulong _, string toString)
         {
@@ -201,8 +184,31 @@ namespace MidniteOilSoftware.Multiplayer
 
         protected virtual void CleanupSession()
         {
-            // override this for any custom cleanup logic
             GameSessionManager.Instance.CleanupSession();
+        }
+
+        void HandleGameStarted(GameStartedEvent e)
+        {
+            if (_enableDebugLog)
+                Logwin.Log("GameManager", "GameStartedEvent received. Starting game...", "Multiplayer");
+    
+            // Get the player list from the PlayerRegistry
+            if (PlayerRegistry.Instance)
+            {
+                Players = PlayerRegistry.Instance.GetPlayers();
+                LocalPlayer = PlayerRegistry.Instance.LocalPlayer;
+        
+                if (_enableDebugLog)
+                    Logwin.Log("GameManager", 
+                        $"Retrieved {Players.Count} players from PlayerRegistry", "Multiplayer");
+            }
+            else
+            {
+                if (_enableDebugLog)
+                    Logwin.LogError("GameManager", "PlayerRegistry.Instance is null!", "Multiplayer");
+            }
+    
+            SetGameState(GameState.GameStarted);
         }
     }
 
@@ -217,5 +223,3 @@ namespace MidniteOilSoftware.Multiplayer
         GameOver
     }
 }
-
-

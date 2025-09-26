@@ -13,9 +13,10 @@ namespace MidniteOilSoftware.Multiplayer
             base.Awake();
         }
 
-        async void Start()
+        protected override async void Start()
         {
             Debug.Log("Bootstrapper Start");
+            base.Start();
             Application.runInBackground = true;
             await UnityServices.InitializeAsync();
         }
@@ -23,15 +24,9 @@ namespace MidniteOilSoftware.Multiplayer
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         static async void Init()
         {
-            if (SceneManager.GetSceneByName("Bootstrapper").IsValid() != true)
-            {
-                Debug.Log("Loading Bootstrapper");
-                await SceneManager.LoadSceneAsync("Bootstrapper", LoadSceneMode.Single);
-            }
-
-            if (SceneManager.GetSceneByName("Main Menu").IsValid() == true) return;
-            Debug.Log("Loading UI scene additively");
-            await SceneManager.LoadSceneAsync("Main Menu", LoadSceneMode.Additive);
+            if (SceneManager.GetSceneByName("Bootstrapper").IsValid() == true) return;
+            Debug.Log("Loading Bootstrapper");
+            await SceneManager.LoadSceneAsync("Bootstrapper", LoadSceneMode.Single);
         }
     }
 }

@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Authentication;
-using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using UnityEngine;
 
@@ -13,106 +11,79 @@ namespace MidniteOilSoftware.Multiplayer
 {
     public class PlayerConnectionsManager : SingletonNetworkBehavior<PlayerConnectionsManager>
     {
-        public readonly Dictionary<ulong, string> PlayerConnectionsToNames = new();
-        public readonly Dictionary<ulong, string> PlayerConnectionsToIds = new();
-        public readonly List<string> PlayerNames = new();
+        private readonly Dictionary<ulong, string> _playerConnectionsToNames = new();
+        private readonly Dictionary<ulong, string> _playerConnectionsToIds = new();
+        private readonly Dictionary<string, NetworkPlayer> _playerConnections = new();
 
-        public string GetPlayerId(ulong connectionId) =>
-            PlayerConnectionsToIds.GetValueOrDefault(connectionId, "Unknown");
+        public string GetPlayerId(ulong connectionId) => _playerConnectionsToIds.GetValueOrDefault(connectionId, "Unknown");
+        public string GetName(ulong connectionId) => _playerConnectionsToNames.GetValueOrDefault(connectionId, "Unknown");
 
-        public string GetName(ulong connectionId) =>
-            PlayerConnectionsToNames.GetValueOrDefault(connectionId, "Unknown");
-
-        readonly Dictionary<string, NetworkPlayer> _playerConnections = new();
-
-        void Start()
+        protected override void Start()
         {
+            base.Start();
             NetworkManager.Singleton.NetworkConfig.ConnectionApproval = true;
             NetworkManager.Singleton.ConnectionApprovalCallback = HandleConnectionApprovalOnServer;
         }
-
-        public async Awaitable StartHostOnServer()
-        {
-            await AddPayloadData();
-            NetworkManager.Singleton.StartHost();
-        }
         
-        public async Awaitable StopHostOnServer()
+        void HandleConnectionApprovalOnServer(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
         {
-            await Awaitable.WaitForSecondsAsync(1f);
-            NetworkManager.Singleton.Shutdown();
-        }
+            var payload = request.Payload;
+            ConnectionData data;
 
-        async Task AddPayloadData()
-        {
-#if UNITY_EDITOR // Editor only Logging
-            var profileName = FindFirstObjectByType<MultiplayerPlayModeManager>().ProfileName;
-            Debug.Log($"PlayerConnectionsManager.AddPayloadData(): Getting PlayerName for Profile {profileName}");
-#endif
-
-            var playerName = AuthenticationManager.Instance.PlayerName;
-            var playerId = AuthenticationService.Instance.PlayerId;
-            await Awaitable.WaitForSecondsAsync(1f);
-
-            ConnectionData data = new()
+            // Check if the payload is null or empty, which is the case for the host
+            if (payload == null || payload.Length == 0)
             {
-                Name = playerName,
-                Id = playerId
-            };
-            var json = JsonUtility.ToJson(data);
-
-            NetworkManager.Singleton.NetworkConfig.ConnectionData = System.Text.Encoding.UTF8.GetBytes(json);
-        }
-
-        void HandleConnectionApprovalOnServer(
-            NetworkManager.ConnectionApprovalRequest request,
-            NetworkManager.ConnectionApprovalResponse response)
-        {
-            var payload = System.Text.Encoding.UTF8.GetString(request.Payload);
-            Debug.Log($"Payload: {payload}");
-            var data = JsonUtility.FromJson<ConnectionData>(payload);
-
-            PlayerConnectionsToNames[request.ClientNetworkId] = data.Name;
-            PlayerConnectionsToIds[request.ClientNetworkId] = data.Id;
-            PlayerNames.Add(data.Name);
-
-            response.Approved = true;
-
-            _playerConnections.TryGetValue(data.Name, out var existingPlayer);
-            if (existingPlayer != null)
+                // For the host, create a ConnectionData object from the local player's info
+                data = new ConnectionData
+                {
+                    Name = AuthenticationManager.Instance.PlayerName,
+                    Id = AuthenticationService.Instance.PlayerId
+                };
+                if (_enableDebugLog) Logwin.Log("PlayerConnectionsManager", "Payload is null. Assuming this is the host and creating ConnectionData.", "Multiplayer");
+            }
+            else
             {
-                existingPlayer.GetComponent<NetworkObject>().Despawn();
-                _playerConnections.Remove(data.Name);
+                // For a connecting client, process the payload as usual
+                var payloadString = System.Text.Encoding.UTF8.GetString(payload);
+                if (_enableDebugLog) Logwin.Log("PlayerConnectionsManager", $"Payload: {payloadString}", "Multiplayer");
+                data = JsonUtility.FromJson<ConnectionData>(payloadString);
             }
 
+            _playerConnectionsToNames[request.ClientNetworkId] = data.Name;
+            _playerConnectionsToIds[request.ClientNetworkId] = data.Id;
+
+            response.Approved = true;
             response.CreatePlayerObject = true;
-        }
-
-        public async Awaitable StartClient()
-        {
-            Debug.Log("Starting client");
-            await AddPayloadData();
-            NetworkManager.Singleton.OnClientStarted += OnClientStarted;
-            NetworkManager.Singleton.StartClient();
-        }
-
-        void OnClientStarted()
-        {
-            NetworkManager.Singleton.OnClientStarted -= OnClientStarted;
-            Debug.Log("Client Started");
         }
 
         public void RegisterPlayerAndRemoveDuplicates(NetworkPlayer networkPlayer)
         {
-            if (_playerConnections.TryGetValue(networkPlayer.PlayerName.Value.Value, out var existingPlayer))
+            if (!IsServer)
             {
-                existingPlayer.GetComponent<NetworkObject>().Despawn();
-                _playerConnections.Remove(networkPlayer.PlayerName.Value.Value);
-                Debug.LogWarning("3.5 Removed Duplicate Player for " + networkPlayer.PlayerName.Value.Value +
-                                 " on Server");
+                if (_enableDebugLog) 
+                    Logwin.LogError("PlayerConnectionsManager", 
+                        "RegisterPlayerAndRemoveDuplicates called on client, this should only be called on the server.", 
+                        "Multiplayer");
+                return;
+            }
+            if (_enableDebugLog) 
+                Logwin.Log("PlayerConnectionsManager", 
+                    $"Registering player {networkPlayer.PlayerName.Value.Value} with ClientId {networkPlayer.OwnerClientId} on Server", 
+                    "Multiplayer");
+            
+            var duplicatePlayer = _playerConnections.Values.FirstOrDefault(p => p.OwnerClientId == networkPlayer.OwnerClientId);
+            if (duplicatePlayer)
+            {
+                duplicatePlayer.GetComponent<NetworkObject>().Despawn();
+                _playerConnections.Remove(duplicatePlayer.PlayerName.Value.Value);
+                if (_enableDebugLog) 
+                    Logwin.LogWarning("PlayerConnectionsManager", 
+                        $"Removed Duplicate Player for ClientId {networkPlayer.OwnerClientId} on Server", 
+                        "Multiplayer");
             }
 
             _playerConnections.Add(networkPlayer.PlayerName.Value.Value, networkPlayer);
         }
+
     }
 }

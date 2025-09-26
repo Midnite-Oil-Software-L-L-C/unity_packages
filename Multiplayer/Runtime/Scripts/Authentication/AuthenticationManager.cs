@@ -4,7 +4,6 @@ using MidniteOilSoftware.Core;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
-using UnityEngine;
 
 namespace MidniteOilSoftware.Multiplayer.Authentication
 {
@@ -17,16 +16,14 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
 
         public ulong ConnectionId => NetworkManager.Singleton.LocalClientId;
 
-        const float MessageLimitRate = 1.2f;
-
-        public async Awaitable<SigninResult> SignInAnonymouslyAsync(string playerName)
+        public async Task<SigninResult> SignInAnonymouslyAsync(string playerName)
         {
             try
             {
                 if (AuthenticationService.Instance.IsSignedIn)
                 {
                     AuthenticationService.Instance.SignOut();
-                    await Awaitable.WaitForSecondsAsync(MessageLimitRate);
+                    await Task.Delay(1200); // Wait 1.2 seconds to avoid rate limiting
                 }
 
                 if (playerName == default && AuthenticationService.Instance.SessionTokenExists)
@@ -37,10 +34,10 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
                 {
                     var options = new SignInOptions() { CreateAccount = true };
                     await AuthenticationService.Instance.SignInAnonymouslyAsync(options);
-                    await AuthenticationService.Instance.UpdatePlayerNameAsync(playerName.Replace(" ", ""));
+                    await AuthenticationService.Instance.UpdatePlayerNameAsync(playerName?.Replace(" ", ""));
                 }
 
-                PlayerName = playerName.Replace(" ", "");
+                PlayerName = playerName?.Replace(" ", "");
                 return SigninResult.Successful;
             }
             catch (Exception ex)
@@ -51,7 +48,7 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
 
         public async Task<SigninResult> SignInWithUserNameAndPasswordAsync(string playerName, string password)
         {
-            var trimmedPlayerName = playerName.Replace(" ", "");
+            var trimmedPlayerName = playerName?.Replace(" ", "");
             try
             {
                 await AuthenticationService.Instance.SignInWithUsernamePasswordAsync(trimmedPlayerName, password);
@@ -62,14 +59,14 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                if (_enableDebugLog) Logwin.LogError("AuthenticationManager", ex.ToString(), "Multiplayer");
                 return new SigninResult(false, ex.Message);
             }
         }
 
         public async Task<SigninResult> RegisterWithUserNameAndPasswordAsync(string playerName, string password)
         {
-            var trimmedPlayerName = playerName.Replace(" ", "");
+            var trimmedPlayerName = playerName?.Replace(" ", "");
             try
             {
                 await AuthenticationService.Instance.SignUpWithUsernamePasswordAsync(trimmedPlayerName, password);
@@ -78,13 +75,14 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             }
             catch (Exception ex)
             {
-                Debug.LogException(ex);
+                if (_enableDebugLog) Logwin.LogError("AuthenticationManager", ex.ToString(), "Multiplayer");
                 return new SigninResult(false, ex.Message);
             }
         }
 
-        async void Start()
+        protected override async void Start()
         {
+            base.Start();
             await UnityServices.InitializeAsync();
             AuthenticationService.Instance.SignedIn += HandleSignedInAnon;
             AuthenticationService.Instance.SignedOut += HandleSignedOut;
@@ -103,7 +101,6 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             base.OnDestroy();
         }
 
-
         void HandleSignedInAnon()
         {
             OnSignedIn?.Invoke();
@@ -111,13 +108,13 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
 
         void HandleSignedOut()
         {
-            Debug.Log("Signed Out");
+            if (_enableDebugLog) Logwin.Log("AuthenticationManager", "Signed Out", "Multiplayer");
         }
 
-        void HandleSignInFailed(RequestFailedException exception)
+        void HandleSignInFailed(RequestFailedException ex)
         {
-            Debug.LogError($"Sign In Failed: {exception.Message}");
-            OnSigninFailed?.Invoke(exception);
+            if (_enableDebugLog) Logwin.LogError("AuthenticationManager", "Sign In failed: " + ex, "Multiplayer");
+            OnSigninFailed?.Invoke(ex);
         }
     }
 }

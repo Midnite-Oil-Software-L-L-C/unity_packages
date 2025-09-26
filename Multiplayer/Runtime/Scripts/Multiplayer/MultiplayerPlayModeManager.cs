@@ -1,24 +1,25 @@
 using System;
 using System.Collections;
 using System.Linq;
-using MidniteOilSoftware.Multiplayer.Authentication;
+using MidniteOilSoftware.Core;
 using Unity.Multiplayer.Playmode;
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
 using UnityEngine;
+using System.Threading.Tasks;
+using MidniteOilSoftware.Multiplayer.Authentication;
 
 namespace MidniteOilSoftware.Multiplayer.Lobby
 {
     public class MultiplayerPlayModeManager : MonoBehaviour
     {
+        [SerializeField] bool _debugLog;
 #if UNITY_EDITOR
         public string ProfileName { get; private set; }
 
         IEnumerator Start()
         {
             DontDestroyOnLoad(gameObject);
-            yield return InitializeMppm();
+            yield return StartCoroutine(InitializeMppm());
         }
 
         const string HostKey = "Host";
@@ -29,131 +30,108 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         IEnumerator InitializeMppm()
         {
-            Debug.Log("InitializeMPPM");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "InitializeMPPM", "Multiplayer");
+    
+            var allTags = CurrentPlayer.ReadOnlyTags().ToArray();
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"All tags: [{string.Join(", ", allTags)}]", "Multiplayer");
+    
             ProfileName = CurrentPlayer.ReadOnlyTags().Except(new[]
                 {
                     LobbyHostKey, LobbyClientKey, HostKey, ClientKey, ServerKey
                 })
                 .FirstOrDefault();
 
-            Debug.Log("MPPMManager: ProfileName " + ProfileName);
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"ProfileName extracted: '{ProfileName}'", "Multiplayer");
+    
             if (ProfileName != default)
             {
                 AuthenticationService.Instance.SwitchProfile(ProfileName);
             }
 
-            Debug.Log($"MPPMManager: Starting as {ProfileName}");
-
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Starting as {ProfileName}", "Multiplayer");
 
             if (CurrentPlayer.ReadOnlyTags().Contains(LobbyHostKey))
-                yield return LobbyHost();
+            {
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Lobby Host Coroutine", "Multiplayer");
+                StartCoroutine(LobbyHost());
+            }
             if (CurrentPlayer.ReadOnlyTags().Contains(LobbyClientKey))
-                yield return LobbyClient();
+            {
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Lobby Client Coroutine", "Multiplayer");
+                StartCoroutine(LobbyClient());
+            }
             if (CurrentPlayer.ReadOnlyTags().Contains(HostKey))
-                yield return Host();
+            {
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Host Coroutine", "Multiplayer");
+                StartCoroutine(Host());
+            }
             if (CurrentPlayer.ReadOnlyTags().Contains(ClientKey))
-                yield return Client();
+            {
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Client Coroutine", "Multiplayer");
+                StartCoroutine(Client());
+            }
             if (CurrentPlayer.ReadOnlyTags().Contains(ServerKey))
-                Server();
+            {
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Server Coroutine", "Multiplayer");
+                StartCoroutine(Server());
+            }
+            yield break;
         }
 
-        static void Server()
+        IEnumerator Server()
         {
-            Debug.Log("MPPMManager: Starting Server"); 
-            NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>().SetConnectionData("0.0.0.0", 7777);
-            NetworkManager.Singleton.StartServer();
+            // Dedicated server is not supported by Multiplayer Services SDK
+            Debug.Log("Dedicated server is not supported by Multiplayer Services SDK");
+            yield break;
         }
 
         IEnumerator Client()
         {
-            LobbyManager.Instance.gameObject.SetActive(false);
-            Debug.Log("MPPMManager: Signing in Client " + ProfileName);
-            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Client" + ProfileName);
-
-            Debug.Log("MPPMManager: Start Client");
-
-            var transport = NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-            if (transport.Protocol == UnityTransport.ProtocolType.RelayUnityTransport)
-                transport.SetConnectionData("127.0.0.1", 7777);
-
-
-
-            yield return PlayerConnectionsManager.Instance.StartClient();
-            NetworkManager.Singleton.OnClientDisconnectCallback += args =>
-            {
-                Debug.LogError($"Client Disconnected {args}");
-                Debug.LogError(NetworkManager.Singleton.DisconnectReason);
-            };
+            // Direct connection logic, outside of the Multiplayer Services SDK scope
+            yield break;
         }
 
         IEnumerator Host()
         {
-            LobbyManager.Instance.gameObject.SetActive(false);
-            Debug.Log("MPPMManager: Starting Host");
-            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Host" + ProfileName);
-
-            NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>().SetConnectionData("0.0.0.0", 7777);
-
-            yield return PlayerConnectionsManager.Instance.StartHostOnServer();
+            // Direct connection logic, outside of the Multiplayer Services SDK scope
+            yield break;
         }
 
         IEnumerator LobbyClient()
         {
-            yield return SignInAnon();
+            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync(ProfileName);
 
-            while (PlayerPrefs.HasKey("LobbyId") == false)
+            while (PlayerPrefs.HasKey("SessionCode") == false)
             {
                 yield return null;
             }
 
-            var lobbyId = PlayerPrefs.GetString("LobbyId");
-            Debug.Log($"MPPMManager: Joining Lobby {lobbyId}");
-            LobbyManager.Instance.JoinLobbyById(lobbyId);
-        }
-
-        async Awaitable SignInAnon()
-        {
-            try
-            {
-                AuthenticationService.Instance.SwitchProfile(ProfileName);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError(ex);
-            }
-
-            Debug.Log("MPPMManager: Signing in");
-
-            SignInOptions options = new SignInOptions() { CreateAccount = true };
-            await AuthenticationService.Instance.SignInAnonymouslyAsync(options);
-            await AuthenticationService.Instance.UpdatePlayerNameAsync(ProfileName);
-            Debug.Log($"MPPMManager: Set Name to {ProfileName}");
+            var sessionCode = PlayerPrefs.GetString("SessionCode");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Joining Session with Code {sessionCode}", "Multiplayer");
+            SessionManager.Instance.JoinSessionById(sessionCode);
+            yield break;
         }
 
         IEnumerator LobbyHost()
         {
-            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync("Host" + ProfileName);
-            yield return new WaitUntil(() => AuthenticationService.Instance.IsSignedIn);
-
-            var lobbyTask = LobbyManager.Instance.HostLobby();
-            yield return new WaitUntil(() => lobbyTask.IsCompleted);
-
-            try
+            yield return AuthenticationManager.Instance.SignInAnonymouslyAsync(ProfileName);
+            
+            // Pass the session name here
+            SessionManager.Instance.StartSessionAsHost(AuthenticationManager.Instance.PlayerName + "'s Game");
+            
+            while (SessionManager.Instance.ActiveSession == null)
             {
-                var lobby = lobbyTask.Result;
-                PlayerPrefs.SetString("LobbyId", lobby.Id);
-                Debug.Log($"MPPMManager: Set LobbyId to {lobby.Id}");
+                yield return null;
             }
-            catch (Exception e)
-            {
-                Debug.LogError(e);
-                throw;
-            }
+
+            var session = SessionManager.Instance.ActiveSession;
+            PlayerPrefs.SetString("SessionCode", session.Id);
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Set SessionCode to {session.Id}", "Multiplayer");
         }
 
         void OnDestroy()
         {
-            PlayerPrefs.DeleteKey("LobbyId");
+            PlayerPrefs.DeleteKey("SessionCode");
         }
 #endif
     }

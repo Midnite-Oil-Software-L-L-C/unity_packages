@@ -4,6 +4,7 @@ using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.Lobby;
 using TMPro;
 using UnityEngine;
+using Unity.Services.Multiplayer;
 
 namespace MidniteOilSoftware.Multiplayer.UI
 {
@@ -23,8 +24,11 @@ namespace MidniteOilSoftware.Multiplayer.UI
             _mainMenuUI.SetActive(true);
             _lobbyPanel.Initialize();
             _currentLobbyPanel.gameObject.SetActive(false);
-            LobbyManager.Instance.OnJoinedLobby += ShowCurrentLobby;
-            LobbyManager.Instance.OnLeftLobby += ShowLobbyPanel;
+
+            // New event subscriptions for the SessionManager
+            SessionManager.Instance.OnSessionJoined += ShowCurrentLobby;
+            SessionManager.Instance.OnSessionLeft += ShowLobbyPanel;
+
             _authenticationPanel.PlayerQuit += ExitGame;
             _authenticationPanel.PlayerSignedIn += PlayerLoggedIn;
             _authenticationPanel.gameObject.SetActive(true);
@@ -33,10 +37,10 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLeftGame(LeftGameEvent e)
         {
-            Debug.Log($"{e.PlayerId}/{e.ClientOwnerId} left the game");
-            if (LobbyManager.Instance.CurrentLobby != null)
+            Debug.Log($"Player left the game");
+            if (SessionManager.Instance.ActiveSession != null)
             {
-                ShowCurrentLobby(LobbyManager.Instance.CurrentLobby);
+                ShowCurrentLobby(SessionManager.Instance.ActiveSession);
             }
             else
             {
@@ -46,7 +50,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void LateUpdate()
         {
-            _gameNameText.SetText(LobbyManager.Instance.CurrentLobby?.Name ?? string.Empty);
+            _gameNameText.SetText(SessionManager.Instance.ActiveSession?.Name ?? string.Empty);
         }
 
         void PlayerLoggedIn(string playerId, string playerName)
@@ -63,7 +67,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
             _currentLobbyPanel.gameObject.SetActive(false);
         }
 
-        void ShowCurrentLobby(Unity.Services.Lobbies.Models.Lobby _)
+        void ShowCurrentLobby(ISession _)
         {
             _lobbyPanel.gameObject.SetActive(false);
             _currentLobbyPanel.gameObject.SetActive(true);

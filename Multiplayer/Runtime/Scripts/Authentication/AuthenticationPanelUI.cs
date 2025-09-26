@@ -22,7 +22,7 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             #if UNITY_WEBGL
             _quitButton.gameObject.SetActive(false);
             #else
-            _quitButton.onClick.removeAllListeners();
+            _quitButton.onClick.RemoveAllListeners();
             _quitButton.onClick.AddListener(HandleQuitButtonClicked);
             #endif
             if (_authenticationDialogs.Count == 1)

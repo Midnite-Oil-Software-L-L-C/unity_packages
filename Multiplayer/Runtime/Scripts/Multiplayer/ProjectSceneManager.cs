@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using MidniteOilSoftware.Core;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
@@ -15,77 +15,107 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         string _scene;
         Scene _currentScene;
 
-
 #if UNITY_EDITOR
-        [SerializeField] SceneAsset _menuScene, _gameScene;
+        [SerializeField] SceneAsset _mainMenuScene;
+        [SerializeField] SceneAsset _gameScene;
 
         void OnValidate()
         {
-            _menuSceneName = _menuScene.name;
-            _gameSceneName = _gameScene.name;
+            if (_gameScene) _gameSceneName = _gameScene.name;
+            if (_mainMenuScene) _mainMenuSceneName = _mainMenuScene?.name ?? "Main Menu";
         }
 #endif
-        [SerializeField] string _menuSceneName, _gameSceneName;
+        [SerializeField] string _gameSceneName;
+        [SerializeField] string _mainMenuSceneName = "Main Menu";
 
         public bool IsLoading { get; private set; }
+
+        protected override void Start()
+        {
+            base.Start();
+            LoadMainMenuScene();
+        }
 
         [ContextMenu(nameof(SetupSceneManagementAndLoadGameScene))]
         public void SetupSceneManagementAndLoadGameScene()
         {
             if (!IsServer)
             {
-                Debug.LogError("SceneManager Events registered on client, this should not be called.");
+                if (_enableDebugLog)
+                {
+                    Logwin.LogError("ProjectSceneManager", 
+                        "SceneManager Events registered on client, this should not be called.", "Multiplayer");
+                }
                 return;
             }
 
-            Debug.Log("SetupSceneManagementAndLoadNextTrack - Registering for Scene events on SERVER");
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager", 
+                    "SetupSceneManagementAndLoadNextTrack - Registering for Scene events on SERVER",
+                    "Multiplayer");
+            }
             NetworkManager.Singleton.SceneManager.VerifySceneBeforeLoading = VerifySceneBeforeLoading;
+            NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= HandleLoadEventCompletedForAllPlayers;
+            NetworkManager.Singleton.SceneManager.OnLoadComplete -= HandleLoadCompleteForIndividualPlayer;
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted += HandleLoadEventCompletedForAllPlayers;
             NetworkManager.Singleton.SceneManager.OnLoadComplete += HandleLoadCompleteForIndividualPlayer;
 
             LoadGameScene();
         }
-
-        public void LoadGameScene()
+        
+        void LoadMainMenuScene()
         {
-            Debug.Log("Loading Game Scene");
-
-            StartCoroutine(LoadSceneAsync(_gameSceneName));
+            // If no main menu scene specified or already loaded, do nothing
+            if (string.IsNullOrEmpty(_mainMenuSceneName) || 
+                SceneManager.GetSceneByName(_mainMenuSceneName).IsValid()) return;
+           
+            if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"Loading Main Menu Scene: {_mainMenuSceneName}", "Multiplayer");
+            SceneManager.LoadSceneAsync(_mainMenuSceneName, LoadSceneMode.Single);
         }
 
-        void LogSceneEvent(SceneEvent sceneEvent)
+        void LoadGameScene()
         {
-            Debug.Log("SceneEvent " + sceneEvent.SceneEventType + " " + sceneEvent.SceneName + " for player " +
-                      sceneEvent.ClientId);
-            Debug.Log(sceneEvent.ClientsThatCompleted?.Count + " clients completed" +
-                      sceneEvent.ClientsThatTimedOut?.Count + " clients timed out");
-            if (sceneEvent.ClientsThatTimedOut != null)
-                foreach (var client in sceneEvent.ClientsThatTimedOut)
-                {
-                    Debug.Log(client + " timed out");
-                }
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager", "Loading Game Scene", "Multiplayer");
+            }
+            StartCoroutine(LoadSceneAsync(_gameSceneName));
         }
 
         static bool VerifySceneBeforeLoading(int sceneIndex, string sceneName, LoadSceneMode loadSceneMode)
         {
-            Debug.Log("Doing Verification for " + sceneName +
-                      " (filtering out UserInterface, everything else passes verification");
-
-            return sceneName != "Main Menu";
+            var isValid = sceneName != "Main Menu";
+            Logwin.Log("ProjectSceneManager",
+                "Doing Verification for " + sceneName +
+                " (filtering out UserInterface, everything else passes verification. IsValid: " + isValid + ")",
+                "Multiplayer");
+            return isValid;
         }
 
-        public void LoadScene(string sceneName) => StartCoroutine(LoadSceneAsync(sceneName));
-
-        IEnumerator LoadSceneAsync(string sceneName = default)
+        IEnumerator LoadSceneAsync(string sceneName = default, LoadSceneMode loadSceneMode = LoadSceneMode.Additive)
         {
             IsLoading = true;
+            if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"LoadSceneAsync {sceneName}", "Multiplayer");
             var currentScene = GetCurrentScene();
 
-            if (currentScene != default)
+            if (currentScene != default && currentScene.Item1.name != sceneName)
+            {
+                if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"Unloading current scene {currentScene.Item1.name}", "Multiplayer");
                 yield return UnloadScene(currentScene.Item1);
+            }
+            
+            while (NetworkManager.Singleton?.SceneManager == null) yield return null;
 
-            NetworkManager.Singleton.SceneManager.LoadScene(sceneName, LoadSceneMode.Additive);
-            Debug.Log($"Loading Scene {sceneName}");
+            try
+            {
+                NetworkManager.Singleton.SceneManager.LoadScene(sceneName, loadSceneMode);
+            }
+            catch (Exception e)
+            {
+                Logwin.LogError("ProjectSceneManager", $"Exception loading scene {sceneName} {e}", "Multiplayer");
+                IsLoading = false;
+            }
         }
 
         void HandleLoadCompleteForIndividualPlayer(
@@ -93,21 +123,100 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             string sceneName, 
             LoadSceneMode loadSceneMode)
         {
-            if (sceneName.Equals(_gameSceneName) == false)
+            if (!sceneName.Equals(_gameSceneName))
                 return;
 
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager", 
+                    $"HandleLoadCompleteForIndividualPlayer: Scene {sceneName} loaded for client {clientId}", 
+                    "Multiplayer");
+            }
+
+            // Try to get player object, but don't error if it's not available yet
+            // Player objects might not be immediately available after scene load due to Netcode timing
             var playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+            if (!playerNetworkObject)
+            {
+                if (_enableDebugLog)
+                {
+                    Logwin.Log("ProjectSceneManager", 
+                        $"PlayerNetworkObject not yet available for clientId {clientId} - this is normal during scene transitions", 
+                        "Multiplayer");
+                }
+                
+                // Optionally retry after a short delay
+                StartCoroutine(RetryGetPlayerAfterDelay(clientId, sceneName, 0.5f));
+                return;
+            }
+
+            ProcessPlayerForScene(clientId, playerNetworkObject);
+        }
+
+        IEnumerator RetryGetPlayerAfterDelay(ulong clientId, string sceneName, float delay)
+        {
+            yield return HelperFunctions.GetWaitForSeconds(delay);
+            
+            var playerNetworkObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
+            if (playerNetworkObject)
+            {
+                if (_enableDebugLog)
+                {
+                    Logwin.Log("ProjectSceneManager", 
+                        $"Successfully found PlayerNetworkObject for clientId {clientId} after delay", 
+                        "Multiplayer");
+                }
+                ProcessPlayerForScene(clientId, playerNetworkObject);
+            }
+            else
+            {
+                if (_enableDebugLog)
+                {
+                    Logwin.LogWarning("ProjectSceneManager", 
+                        $"PlayerNetworkObject still not available for clientId {clientId} after {delay}s delay", 
+                        "Multiplayer");
+                }
+            }
+        }
+
+        void ProcessPlayerForScene(ulong clientId, NetworkObject playerNetworkObject)
+        {
             var player = playerNetworkObject.GetComponent<NetworkPlayer>();
+            if (player == null)
+            {
+                if (_enableDebugLog)
+                {
+                    Logwin.LogError("ProjectSceneManager", 
+                        $"No NetworkPlayer component on PlayerNetworkObject for clientId {clientId}", 
+                        "Multiplayer");
+                }
+                return;
+            }
+
+            // Now we can safely access player data
             var playerName = player.PlayerName.Value.Value;
             var playerId = player.PlayerId.Value.Value;
+            
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager", 
+                    $"Player {playerName} (ID: {playerId}) loaded into scene {_gameSceneName}", 
+                    "Multiplayer");
+            }
+
+            // Add any additional player processing logic here if needed
         }
 
         void HandleLoadEventCompletedForAllPlayers(string sceneName, LoadSceneMode loadSceneMode,
             List<ulong> clientsCompleted,
             List<ulong> clientsTimedOut)
         {
-            Debug.Log(
-                $"HandleLoadEventCompletedForAllPlayers {sceneName} {loadSceneMode} Completed:{clientsCompleted.Count} TimedOut:{clientsTimedOut.Count}");
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager",
+                    $"HandleLoadEventCompletedForAllPlayers {sceneName} {loadSceneMode} Completed:{clientsCompleted.Count} TimedOut:{clientsTimedOut.Count}",
+                    "Multiplayer");
+            }
             IsLoading = false;
         }
 
@@ -136,10 +245,19 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _unloading = true;
 
             // Unload the scene
+            NetworkManager.SceneManager.OnUnloadComplete -= UnloadComplete;
             NetworkManager.SceneManager.OnUnloadComplete += UnloadComplete;
-            NetworkManager.SceneManager.UnloadScene(scene);
-            while (_unloading)
-                yield return null;
+            try
+            {
+                NetworkManager.SceneManager.UnloadScene(scene);
+            }
+            catch (Exception e)
+            {
+                NetworkManager.SceneManager.OnUnloadComplete -= UnloadComplete;
+                Logwin.LogError("ProjectSceneManager", $"Exception unloading scene {scene.name} {e}", "Multiplayer");
+                _unloading = false;
+            }
+            while (_unloading) yield return null;
         }
 
         void UnloadComplete(ulong clientId, string sceneName)
@@ -151,7 +269,10 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         public IEnumerator UnloadCurrentScene()
         {
             var currentScene = GetCurrentScene();
-            Debug.Log($"Unloading current scene {currentScene.Item1.name}");
+            if (_enableDebugLog)
+            {
+                Logwin.Log("ProjectSceneManager", $"Unloading current scene {currentScene.Item1.name}", "Multiplayer");
+            }
             yield return UnloadScene(currentScene.Item1);
         }
     }   

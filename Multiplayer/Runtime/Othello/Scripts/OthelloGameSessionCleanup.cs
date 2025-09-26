@@ -11,6 +11,5 @@ namespace MidniteOilSoftware.Core.Othello
             yield return base.CleanupSession();
             yield return ProjectSceneManager.Instance.UnloadCurrentScene();
         }
-        
     }
 }

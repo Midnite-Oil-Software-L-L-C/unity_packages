@@ -1,5 +1,6 @@
-﻿using TMPro;
-using Unity.Services.Lobbies;
+﻿using MidniteOilSoftware.Core;
+using TMPro;
+using Unity.Services.Multiplayer;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,22 +11,28 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         [SerializeField] TMP_Text _name;
         [SerializeField] TMP_Text _playerCount;
         [SerializeField] Button _joinButton;
+        [SerializeField] bool _enableDebugLog = true;
 
-        Unity.Services.Lobbies.Models.Lobby _lobby;
+        ISessionInfo _session;
 
         void Start()
         {
             _joinButton.onClick.AddListener(TryJoin);
         }
 
-        public void Bind(Unity.Services.Lobbies.Models.Lobby lobby)
+        public void Bind(ISessionInfo session)
         {
-            _lobby = lobby;
-            _name.SetText(lobby.Name);
-            _playerCount.SetText(lobby.Players.Count + " / " + lobby.MaxPlayers);
+            _session = session;
+            _name.SetText(session.Name);
+            _playerCount.SetText((session.MaxPlayers - session.AvailableSlots) + " / " + session.MaxPlayers);
 
-            if (_lobby.Id == LobbyManager.Instance.CurrentLobby?.Id ||
-                _lobby.AvailableSlots < 1)
+            if (_enableDebugLog)
+            {
+                Logwin.Log("LobbyEntry",
+                    $"LobbyEntry.Bind(): Binding entry to session {session.Name}:{session.Id}, isLocked: {session.IsLocked}, available slots: {session.AvailableSlots}",
+                    "Multiplayer");
+            }
+            if (session.AvailableSlots < 1 || session.IsLocked || string.IsNullOrEmpty(session.Id))
             {
                 _joinButton.interactable = false;
             }
@@ -33,14 +40,18 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         async void TryJoin()
         {
-            try
+            if (string.IsNullOrEmpty(_session?.Id))
             {
-                await LobbyManager.Instance.JoinLobby(_lobby);
+                if (_enableDebugLog)
+                {
+                    Logwin.LogError("LobbyEntry", 
+                        "LobbyEntry.TryJoin(): Session ID is null or empty, cannot join session.",
+                        "Multiplayer");
+                }
+                return;
             }
-            catch (LobbyServiceException exception)
-            {
-                Debug.LogError(exception);
-            }
+            await SessionManager.Instance.JoinSessionById(_session.Id);
         }
+
     }
 }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using MidniteOilSoftware.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.Netcode;
@@ -13,6 +14,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         [SerializeField] float _cellSize = 1.0f;
         [SerializeField] GameObject _cellPrefab;
         [SerializeField] GameObject _chipPrefab;
+        [SerializeField] bool _enableDebugLog = true;
 
         public bool BoardIsFull
         {
@@ -87,23 +89,34 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
         void PlaceInitialChips()
         {
+            if (!IsServer) return; // Only server should initialize the board
+    
             foreach(var cell in _cells)
             {
                 cell.ClearChip();
             }
-            var chip = Instantiate(_chipPrefab, _cells[3, 3].transform).GetComponent<Chip>();
-            chip.SetColor(ChipColor.White);
-            _cells[3, 3].DropChip(chip);
-            chip = Instantiate(_chipPrefab, _cells[4, 4].transform).GetComponent<Chip>();
-            chip.SetColor(ChipColor.White);
-            _cells[4, 4].DropChip(chip);
-            chip = Instantiate(_chipPrefab, _cells[3, 4].transform).GetComponent<Chip>();
-            chip.SetColor(ChipColor.Black);
-            _cells[3, 4].DropChip(chip);
-            chip = Instantiate(_chipPrefab, _cells[4, 3].transform).GetComponent<Chip>();
-            chip.SetColor(ChipColor.Black);
-            _cells[4, 3].DropChip(chip);
+    
+            // Place initial chips via RPC to synchronize across all clients
+            PlaceInitialChipClientRPC(3, 3, ChipColor.White);
+            PlaceInitialChipClientRPC(4, 4, ChipColor.White);
+            PlaceInitialChipClientRPC(3, 4, ChipColor.Black);
+            PlaceInitialChipClientRPC(4, 3, ChipColor.Black);
         }
+
+        [Rpc(SendTo.ClientsAndHost)]
+        void PlaceInitialChipClientRPC(int x, int y, ChipColor chipColor)
+        {
+            if (_enableDebugLog)
+            {
+                Logwin.Log("OthelloBoard", $"Placing initial {chipColor} chip at {x},{y}", "Multiplayer");
+            }
+    
+            var cell = _cells[x, y];
+            var chip = Instantiate(_chipPrefab, cell.transform).GetComponent<Chip>();
+            chip.SetColor(chipColor);
+            cell.DropChip(chip);
+        }
+
 
         void InstantiateChipCursor()
         {
