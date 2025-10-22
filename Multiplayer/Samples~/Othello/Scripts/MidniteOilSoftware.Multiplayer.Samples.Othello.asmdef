@@ -1,0 +1,19 @@
+{
+  "name": "MidniteOilSoftware.Multiplayer.Samples.Othello",
+  "rootNamespace": "MidniteOilSoftware.Multiplayer.Othello",
+  "references": [
+    "MidniteOilSoftware.Multiplayer",
+    "MidniteOilSoftware.Core",
+    "Unity.Netcode.Runtime",
+    "Unity.InputSystem"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
