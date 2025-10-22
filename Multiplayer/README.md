@@ -832,7 +832,7 @@ This project is licensed under the MIT License.
 ```
 MIT License
 
-Copyright (c) 2024 Midnite Oil Software L.L.C.
+Copyright (c) 2025 Midnite Oil Software L.L.C.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -861,11 +861,8 @@ SOFTWARE.
 - Unity Technologies - Unity Engine and Netcode for GameObjects
 - Unity Gaming Services - Authentication, Lobby, and Relay
 
-## 💬 Support & Contributing
-
-- **Issues**: Report bugs or request features on our [GitHub Issues](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/issues)
-- **Discussions**: Join conversations on [GitHub Discussions](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/discussions)
-- **Pull Requests**: Contributions are welcome! Please read our contributing guidelines first
+## 💬 Support
+- **Issues**: Report bugs or request features on our [GitHub Issues](https://github.com/Midnite-Oil-Software-L-L-C/
 
 ## 🌟 Show Your Support
 
