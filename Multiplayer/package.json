@@ -15,9 +15,10 @@
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.inputsystem": "1.14.2",
     "com.unity.ugui": "2.0.0",
-    "com.unity.netcode.gameobjects": "2.5.1",
+    "com.unity.netcode.gameobjects": "2.6.0",
     "com.unity.services.multiplayer": "1.1.8",
-    "com.unity.multiplayer.playmode": "1.6.1"
+    "com.unity.multiplayer.playmode": "1.6.1",
+    "com.unity.multiplayer.tools": "2.2.6"
   },
   "keywords": [
     "multiplayer",
