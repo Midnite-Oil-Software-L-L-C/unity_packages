@@ -97,7 +97,6 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                 _gameManager.LocalOthelloPlayer.PlayerName.Value.ToString());
         }
 
-        [Command("Pass")]
         void PlayerPassed()
         {
             _passButtons[_gameManager.CurrentPlayerTurnIndex].gameObject.SetActive(false);
