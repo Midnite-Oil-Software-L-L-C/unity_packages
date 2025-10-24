@@ -2,7 +2,6 @@
 using System.IO;
 using UnityEditor;
 using UnityEngine;
-using Build.Profile;
 
 namespace MidniteOilSoftware.Multiplayer.Editor
 {
@@ -18,7 +17,7 @@ namespace MidniteOilSoftware.Multiplayer.Editor
                 "Setup Multiplayer Scenes",
                 "This will:\n\n" +
                 "1. Copy Bootstrapper.unity and Main Menu.unity to Assets/Scenes/\n" +
-                "2. Add them to your active Build Profile\n\n" +
+                "2. Add them to your Build Settings\n\n" +
                 "Continue?",
                 "Yes",
                 "Cancel"))
@@ -31,11 +30,11 @@ namespace MidniteOilSoftware.Multiplayer.Editor
                 EnsureScenesDirectoryExists();
                 CopySceneFromPackage("Bootstrapper.unity");
                 CopySceneFromPackage("Main Menu.unity");
-                AddScenesToBuildProfile();
+                AddScenesToBuildSettings();
                 
                 EditorUtility.DisplayDialog(
                     "Success",
-                    "Multiplayer scenes have been copied to Assets/Scenes/ and added to your Build Profile.\n\n" +
+                    "Multiplayer scenes have been copied to Assets/Scenes/ and added to your Build Settings.\n\n" +
                     "Build order:\n" +
                     "0. Bootstrapper\n" +
                     "1. Main Menu\n" +
@@ -94,7 +93,7 @@ namespace MidniteOilSoftware.Multiplayer.Editor
             }
         }
         
-        static void AddScenesToBuildProfile()
+        static void AddScenesToBuildSettings()
         {
             string bootstrapperPath = $"{TARGET_SCENES_PATH}/Bootstrapper.unity";
             string mainMenuPath = $"{TARGET_SCENES_PATH}/Main Menu.unity";
@@ -115,7 +114,7 @@ namespace MidniteOilSoftware.Multiplayer.Editor
             
             EditorBuildSettings.scenes = scenesList.ToArray();
             
-            Debug.Log($"Added scenes to Build Profile. Total scenes: {scenesList.Count}");
+            Debug.Log($"Added scenes to Build Settings. Total scenes: {scenesList.Count}");
             Debug.Log("Scene build order:");
             for (int i = 0; i < scenesList.Count; i++)
             {
