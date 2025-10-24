@@ -5,7 +5,9 @@
     "MidniteOilSoftware.Multiplayer",
     "MidniteOilSoftware.Core",
     "Unity.Netcode.Runtime",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.TextMeshPro",
+    "Unity.Collections"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
