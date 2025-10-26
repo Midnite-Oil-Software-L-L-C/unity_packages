@@ -43,7 +43,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Debug.LogError("Multiplayer:ProjectSceneManager - SceneManager Events registered on client, this should not be called.";
+                    Debug.LogError("Multiplayer:ProjectSceneManager - SceneManager Events registered on client, this should not be called.");
                 }
                 return;
             }
