@@ -23,7 +23,7 @@ This package provides everything you need to quickly build turn-based and real-t
 ## 📋 Requirements
 
 - **Unity 6000.0 or later**
-- **[Midnite Oil Software Core Package](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/tree/main/Core)** (installed automatically as dependency)
+- **[Midnite Oil Software Core Package](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/tree/main/Core)**
 - **Unity Gaming Services** account (free tier available)
 
 ## 🚀 Installation
@@ -52,14 +52,14 @@ The Multiplayer package requires the Core package. Install it first:
 
 1. Open Unity and go to `Window > Package Manager`
 2. Click the "**+**" button and choose `Add package from git URL`
-3. Enter: `https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Core`
+3. Enter: [https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Core](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Core)
 4. Click `Add` and wait for installation to complete
 
 ### Step 2: Install Multiplayer Package
 
 1. In Package Manager, click the "**+**" button again
 2. Choose `Add package from git URL`
-3. Enter: `https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Multiplayer`
+3. Enter: [https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Multiplayer](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages.git?path=/Multiplayer)
 4. Click `Add` and wait for installation to complete
 
 ### Step 3: Import Othello Sample (Optional but Recommended)
