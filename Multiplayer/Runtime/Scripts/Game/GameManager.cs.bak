@@ -19,7 +19,9 @@ namespace MidniteOilSoftware.Multiplayer
                 if (CurrentPlayerTurnIndex < Players.Count) return Players[CurrentPlayerTurnIndex];
                 if (_enableDebugLog)
                 {
-                    Debug.LogError($"GameManager:Multiplayer-CurrentPlayerTurnIndex {CurrentPlayerTurnIndex} out of range of {Players.Count} players");
+                    Logwin.LogError("GameManager",
+                        $"CurrentPlayerTurnIndex {CurrentPlayerTurnIndex} out of range of {Players.Count} players",
+                        "Multiplayer");
                 }
                 return null;
             }
@@ -72,7 +74,10 @@ namespace MidniteOilSoftware.Multiplayer
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"GameManager:Multiplayer-GameState changed from {previousState} to {newState} IsServer = {IsServer} IsClient = {IsClient} IsHost = {IsHost}");
+                Logwin.Log(
+                    "GameManager",
+                    $"GameState changed from {previousState} to {newState} IsServer = {IsServer} IsClient = {IsClient} IsHost = {IsHost}",
+                    "Multiplayer");
             }
 
             if (IsServer)
@@ -86,7 +91,7 @@ namespace MidniteOilSoftware.Multiplayer
 
             if (_enableDebugLog)
             {
-                Debug.Log($"GameManager:Multiplayer-Raising GameStateChangedEvent({newState})");
+                Logwin.Log("GameManager", $"Raising GameStateChangedEvent({newState})", "Multiplayer");
             }
             EventBus.Instance.Raise(new GameStateChangedEvent(newState));
         }
@@ -140,7 +145,8 @@ namespace MidniteOilSoftware.Multiplayer
         protected virtual void JoinedGame(NetworkPlayer player)
         {
             if (_enableDebugLog)
-                Debug.Log($"GameManager:Multiplayer-Player joined game: {player.PlayerName.Value}");
+                Logwin.Log("GameManager", 
+                    $"Player joined game: {player.PlayerName.Value}", "Multiplayer");
         }
         
         void GetPlayersFromRegistry()
@@ -153,12 +159,13 @@ namespace MidniteOilSoftware.Multiplayer
                 LocalPlayer = PlayerRegistry.Instance.LocalPlayer;
                 
                 if (_enableDebugLog)
-                    Debug.Log($"GameManager:Multiplayer-Client retrieved {Players.Count} players from PlayerRegistry");
+                    Logwin.Log("GameManager", 
+                        $"Client retrieved {Players.Count} players from PlayerRegistry", "Multiplayer");
             }
             else
             {
                 if (_enableDebugLog)
-                    Debug.LogError("GameManager:Multiplayer-PlayerRegistry.Instance is null on client!");
+                    Logwin.LogError("GameManager", "PlayerRegistry.Instance is null on client!", "Multiplayer");
             }
         }
 
@@ -183,7 +190,7 @@ namespace MidniteOilSoftware.Multiplayer
         void HandleGameStarted(GameStartedEvent e)
         {
             if (_enableDebugLog)
-                Debug.Log("GameManager:Multiplayer-GameStartedEvent received. Starting game...");
+                Logwin.Log("GameManager", "GameStartedEvent received. Starting game...", "Multiplayer");
     
             // Get the player list from the PlayerRegistry
             if (PlayerRegistry.Instance)
@@ -192,12 +199,13 @@ namespace MidniteOilSoftware.Multiplayer
                 LocalPlayer = PlayerRegistry.Instance.LocalPlayer;
         
                 if (_enableDebugLog)
-                    Debug.Log($"GameManager:Multiplayer-Retrieved {Players.Count} players from PlayerRegistry");
+                    Logwin.Log("GameManager", 
+                        $"Retrieved {Players.Count} players from PlayerRegistry", "Multiplayer");
             }
             else
             {
                 if (_enableDebugLog)
-                    Debug.LogError("GameManager:Multiplayer-PlayerRegistry.Instance is null!");
+                    Logwin.LogError("GameManager", "PlayerRegistry.Instance is null!", "Multiplayer");
             }
     
             SetGameState(GameState.GameStarted);

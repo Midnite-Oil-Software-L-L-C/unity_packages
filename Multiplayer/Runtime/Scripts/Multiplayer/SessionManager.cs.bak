@@ -32,7 +32,9 @@ namespace MidniteOilSoftware
                 _gameSessionManager = FindFirstObjectByType<GameSessionManager>();
                 if (!_gameSessionManager && _enableDebugLog)
                 {
-                    Debug.LogError("SessionManager:Multiplayer-No GameSessionManager found in scene, please add one or override InitializeSession in a derived class.");
+                    Logwin.LogError("SessionManager", 
+                        "No GameSessionManager found in scene, please add one or override InitializeSession in a derived class.", 
+                        "Multiplayer");
                 }
             }
             if (UnityServices.State != ServicesInitializationState.Uninitialized) return;
@@ -69,23 +71,23 @@ namespace MidniteOilSoftware
                 _activeSession = await MultiplayerService.Instance.CreateSessionAsync(options.WithRelayNetwork());
                 if (_enableDebugLog)
                 {
-                    Debug.Log($"SessionManager:Multiplayer-Created session {_activeSession.Name} with ID: {_activeSession.Id}");
+                    Logwin.Log("SessionManager", $"Created session {_activeSession.Name} with ID: {_activeSession.Id}", "Multiplayer");
                 }
                 OnSessionJoined?.Invoke(_activeSession);
             }
             catch (RelayServiceException e)
             {
-                if (_enableDebugLog) Debug.LogError($"SessionManager:Multiplayer-Failed to get Relay join code: {e}");
+                if (_enableDebugLog) Logwin.LogError("SessionManager", $"Failed to get Relay join code: {e}", "Multiplayer");
             }
             catch (Exception e)
             {
-                if (_enableDebugLog) Debug.LogError($"SessionManager:Multiplayer-Failed to create session: {e}");
+                if (_enableDebugLog) Logwin.LogError("SessionManager", $"Failed to create session: {e}", "Multiplayer");
             }
         }
 
         public async Task JoinSessionById(string sessionId)
         {
-            if (_enableDebugLog) Debug.Log($"SessionManager:Multiplayer-Joining session with id: {sessionId}");
+            if (_enableDebugLog) Logwin.Log("SessionManager", $"Joining session with id: {sessionId}", "Multiplayer");
             var playerProperties = await GetPlayerProperties();
             var options = new JoinSessionOptions
             {
@@ -102,7 +104,8 @@ namespace MidniteOilSoftware
             {
                 if (_enableDebugLog)
                 {
-                    Debug.Log($"SessionManager:Multiplayer-Leaving session {_activeSession.Name} with ID: {_activeSession.Id}");
+                    Logwin.Log("SessionManager", $"Leaving session {_activeSession.Name} with ID: {_activeSession.Id}",
+                        "Multiplayer");
                 }
                 await _activeSession.LeaveAsync();
             }

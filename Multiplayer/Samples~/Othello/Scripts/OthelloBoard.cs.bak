@@ -108,7 +108,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"OthelloBoard:Multiplayer-Placing initial {chipColor} chip at {x},{y}");
+                Logwin.Log("OthelloBoard", $"Placing initial {chipColor} chip at {x},{y}", "Multiplayer");
             }
     
             var cell = _cells[x, y];

@@ -98,7 +98,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
             catch (System.Exception e)
             {
-                if (_enableDebugLog) Debug.LogError($"LobbyListPanel:Multiplayer-Error querying sessions: {e}");
+                if (_enableDebugLog) Logwin.LogError("LobbyListPanel", $"Error querying sessions: {e}", "Multiplayer");
             }
             finally
             {

@@ -15,7 +15,8 @@ namespace MidniteOilSoftware.Multiplayer
             _unityTransport = GetComponent<UnityTransport>();
             if (!_unityTransport)
             {
-                if (_debugLog) Debug.LogError("TransportConfig:Multiplayer-UnityTransport requires a UnityTransport component");
+                if (_debugLog) Logwin.LogError("TransportConfig", 
+                    "UnityTransport requires a UnityTransport component", "Multiplayer");
                 return;
             }
             #if UNITY_WEBGL

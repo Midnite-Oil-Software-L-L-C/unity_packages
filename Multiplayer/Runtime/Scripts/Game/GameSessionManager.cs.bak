@@ -29,17 +29,21 @@ namespace MidniteOilSoftware.Multiplayer
             if (!_enableDebugLog) return;
             if (!_gameSessionInitializer)
             {
-                Debug.LogError("GameSessionManager:Multiplayer-No GameSessionInitializer found on GameSessionManager, please add one or override InitializeSession in a derived class.");
+                Logwin.LogError("GameSessionManager", 
+                    "No GameSessionInitializer found on GameSessionManager, please add one or override InitializeSession in a derived class.",
+                    "Multiplayer");
             }
             if (!_gameSessionCleanup)
             {
-                Debug.LogError("GameSessionManager:Multiplayer-No GameSessionCleanup found on GameSessionManager, please add one or override CleanupSession in a derived class.");
+                Logwin.LogError("GameSessionManager", 
+                    "No GameSessionCleanup found on GameSessionManager, please add one or override CleanupSession in a derived class.",
+                    "Multiplayer");
             }
         }
         public void InitializeSession()
         {
             if (_enableDebugLog)
-                Debug.Log("GameSessionManager:Multiplayer-Initializing game session...");
+                Logwin.Log("GameSessionManager", "Initializing game session...", "Multiplayer");
             _gameSessionInitializer?.InitializeSession();
             EventBus.Instance.Raise<GameSessionInitializedEvent>(new GameSessionInitializedEvent());
         }

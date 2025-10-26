@@ -47,7 +47,9 @@ namespace MidniteOilSoftware.Multiplayer
             
             if (_enableDebugLog)
             {
-                Debug.Log($"GameStarter:Multiplayer-Checking for game start. Connected clients: {connectedClientsCount}, PlayerRegistry players: {registeredPlayersCount}/{_maxPlayers}");
+                Logwin.Log("GameStarter", 
+                    $"Checking for game start. Connected clients: {connectedClientsCount}, PlayerRegistry players: {registeredPlayersCount}/{_maxPlayers}", 
+                    "Multiplayer");
             }
 
             // Check both connected clients AND registered players to be safe
@@ -55,7 +57,9 @@ namespace MidniteOilSoftware.Multiplayer
             {
                 if (_enableDebugLog && connectedClientsCount >= _maxPlayers && registeredPlayersCount < _maxPlayers)
                 {
-                    Debug.Log("GameStarter:Multiplayer-Connected clients ready but PlayerRegistry still registering players. Will retry...");
+                    Logwin.Log("GameStarter", 
+                        "Connected clients ready but PlayerRegistry still registering players. Will retry...", 
+                        "Multiplayer");
                     
                     // If clients are connected but not all registered yet, try again in a moment
                     StartCoroutine(DelayedCheckForGameStart());
@@ -65,7 +69,9 @@ namespace MidniteOilSoftware.Multiplayer
             
             if (_enableDebugLog)
             {
-                Debug.Log("GameStarter:Multiplayer-Max players reached in both NetworkManager and PlayerRegistry, starting game.");
+                Logwin.Log("GameStarter", 
+                    "Max players reached in both NetworkManager and PlayerRegistry, starting game.", 
+                    "Multiplayer");
             }
             StartGame();
         }
@@ -82,7 +88,7 @@ namespace MidniteOilSoftware.Multiplayer
             
             if (_enableDebugLog)
             {
-                Debug.Log("GameStarter:Multiplayer-Raising GameStartedEvent");
+                Logwin.Log("GameStarter", "Raising GameStartedEvent", "Multiplayer");
             }
             
             EventBus.Instance.Raise<GameStartedEvent>(new GameStartedEvent());

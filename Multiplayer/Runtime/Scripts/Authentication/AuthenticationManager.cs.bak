@@ -59,7 +59,7 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             }
             catch (Exception ex)
             {
-                if (_enableDebugLog) Debug.LogError($"AuthenticationManager:Multiplayer-{ex.ToString()}");
+                if (_enableDebugLog) Logwin.LogError("AuthenticationManager", ex.ToString(), "Multiplayer");
                 return new SigninResult(false, ex.Message);
             }
         }
@@ -75,7 +75,7 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
             }
             catch (Exception ex)
             {
-                if (_enableDebugLog) Debug.LogError($"AuthenticationManager:Multiplayer-{ex.ToString()}");
+                if (_enableDebugLog) Logwin.LogError("AuthenticationManager", ex.ToString(), "Multiplayer");
                 return new SigninResult(false, ex.Message);
             }
         }
@@ -108,12 +108,12 @@ namespace MidniteOilSoftware.Multiplayer.Authentication
 
         void HandleSignedOut()
         {
-            if (_enableDebugLog) Debug.Log("AuthenticationManager:Multiplayer-Signed Out");
+            if (_enableDebugLog) Logwin.Log("AuthenticationManager", "Signed Out", "Multiplayer");
         }
 
         void HandleSignInFailed(RequestFailedException ex)
         {
-            if (_enableDebugLog) Debug.LogError($"AuthenticationManager:Multiplayer-Sign In failed: {ex}");
+            if (_enableDebugLog) Logwin.LogError("AuthenticationManager", "Sign In failed: " + ex, "Multiplayer");
             OnSigninFailed?.Invoke(ex);
         }
     }

@@ -30,10 +30,10 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         IEnumerator InitializeMppm()
         {
-            if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-InitializeMPPM");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "InitializeMPPM", "Multiplayer");
     
             var allTags = CurrentPlayer.ReadOnlyTags().ToArray();
-            if (_debugLog) Debug.Log($"MultiplayerPlayModeManager:Multiplayer-All tags: [{string.Join(", ", allTags)}]");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"All tags: [{string.Join(", ", allTags)}]", "Multiplayer");
     
             ProfileName = CurrentPlayer.ReadOnlyTags().Except(new[]
                 {
@@ -41,38 +41,38 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
                 })
                 .FirstOrDefault();
 
-            if (_debugLog) Debug.Log($"MultiplayerPlayModeManager:Multiplayer-ProfileName extracted: '{ProfileName}'");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"ProfileName extracted: '{ProfileName}'", "Multiplayer");
     
             if (ProfileName != default)
             {
                 AuthenticationService.Instance.SwitchProfile(ProfileName);
             }
 
-            if (_debugLog) Debug.Log($"MultiplayerPlayModeManager:Multiplayer-Starting as {ProfileName}");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Starting as {ProfileName}", "Multiplayer");
 
             if (CurrentPlayer.ReadOnlyTags().Contains(LobbyHostKey))
             {
-                if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-Starting Lobby Host Coroutine");
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Lobby Host Coroutine", "Multiplayer");
                 StartCoroutine(LobbyHost());
             }
             if (CurrentPlayer.ReadOnlyTags().Contains(LobbyClientKey))
             {
-                if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-Starting Lobby Client Coroutine");
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Lobby Client Coroutine", "Multiplayer");
                 StartCoroutine(LobbyClient());
             }
             if (CurrentPlayer.ReadOnlyTags().Contains(HostKey))
             {
-                if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-Starting Host Coroutine");
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Host Coroutine", "Multiplayer");
                 StartCoroutine(Host());
             }
             if (CurrentPlayer.ReadOnlyTags().Contains(ClientKey))
             {
-                if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-Starting Client Coroutine");
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Client Coroutine", "Multiplayer");
                 StartCoroutine(Client());
             }
             if (CurrentPlayer.ReadOnlyTags().Contains(ServerKey))
             {
-                if (_debugLog) Debug.Log("MultiplayerPlayModeManager:Multiplayer-Starting Server Coroutine");
+                if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", "Starting Server Coroutine", "Multiplayer");
                 StartCoroutine(Server());
             }
             yield break;
@@ -107,7 +107,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
 
             var sessionCode = PlayerPrefs.GetString("SessionCode");
-            if (_debugLog) Debug.Log($"MultiplayerPlayModeManager:Multiplayer-Joining Session with Code {sessionCode}");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Joining Session with Code {sessionCode}", "Multiplayer");
             SessionManager.Instance.JoinSessionById(sessionCode);
             yield break;
         }
@@ -126,7 +126,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
             var session = SessionManager.Instance.ActiveSession;
             PlayerPrefs.SetString("SessionCode", session.Id);
-            if (_debugLog) Debug.Log($"MultiplayerPlayModeManager:Multiplayer-Set SessionCode to {session.Id}");
+            if (_debugLog) Logwin.Log("MultiplayerPlayModeManager", $"Set SessionCode to {session.Id}", "Multiplayer");
         }
 
         void OnDestroy()

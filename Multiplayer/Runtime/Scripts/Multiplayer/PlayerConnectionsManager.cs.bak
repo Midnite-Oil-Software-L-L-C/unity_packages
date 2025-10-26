@@ -39,13 +39,13 @@ namespace MidniteOilSoftware.Multiplayer
                     Name = AuthenticationManager.Instance.PlayerName,
                     Id = AuthenticationService.Instance.PlayerId
                 };
-                if (_enableDebugLog) Debug.Log("PlayerConnectionsManager:Multiplayer-Payload is null. Assuming this is the host and creating ConnectionData.");
+                if (_enableDebugLog) Logwin.Log("PlayerConnectionsManager", "Payload is null. Assuming this is the host and creating ConnectionData.", "Multiplayer");
             }
             else
             {
                 // For a connecting client, process the payload as usual
                 var payloadString = System.Text.Encoding.UTF8.GetString(payload);
-                if (_enableDebugLog) Debug.Log($"PlayerConnectionsManager:Multiplayer-Payload: {payloadString}");
+                if (_enableDebugLog) Logwin.Log("PlayerConnectionsManager", $"Payload: {payloadString}", "Multiplayer");
                 data = JsonUtility.FromJson<ConnectionData>(payloadString);
             }
 
@@ -60,7 +60,9 @@ namespace MidniteOilSoftware.Multiplayer
         {
             if (!IsServer) return;
             if (_enableDebugLog) 
-                Debug.Log($"PlayerConnectionsManager:Multiplayer-Registering player {networkPlayer.PlayerName.Value.Value} with ClientId {networkPlayer.OwnerClientId} on Server");
+                Logwin.Log("PlayerConnectionsManager", 
+                    $"Registering player {networkPlayer.PlayerName.Value.Value} with ClientId {networkPlayer.OwnerClientId} on Server", 
+                    "Multiplayer");
             
             var duplicatePlayer = _playerConnections.Values.FirstOrDefault(p => p.OwnerClientId == networkPlayer.OwnerClientId);
             if (duplicatePlayer)
@@ -68,7 +70,9 @@ namespace MidniteOilSoftware.Multiplayer
                 duplicatePlayer.GetComponent<NetworkObject>().Despawn();
                 _playerConnections.Remove(duplicatePlayer.PlayerName.Value.Value);
                 if (_enableDebugLog) 
-                    Debug.LogWarning($"PlayerConnectionsManager:Multiplayer-Removed Duplicate Player for ClientId {networkPlayer.OwnerClientId} on Server");
+                    Logwin.LogWarning("PlayerConnectionsManager", 
+                        $"Removed Duplicate Player for ClientId {networkPlayer.OwnerClientId} on Server", 
+                        "Multiplayer");
             }
 
             _playerConnections.Add(networkPlayer.PlayerName.Value.Value, networkPlayer);

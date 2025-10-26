@@ -78,7 +78,9 @@ namespace MidniteOilSoftware.Multiplayer
             }
             else if (_instance != this)
             {
-                Debug.LogWarning($"SingletonNetworkBehavior:Multiplayer-[SingletonMonoBehaviour] Another instance of '{typeof(T)}' exists. Destroying: {gameObject.name}");
+                Logwin.LogWarning("SingletonNetworkBehavior",
+                    $"[SingletonMonoBehaviour] Another instance of '{typeof(T)}' exists. Destroying: {gameObject.name}",
+                    "Multiplayer");
                 Destroy(gameObject);
             }
         }
@@ -87,7 +89,7 @@ namespace MidniteOilSoftware.Multiplayer
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"SingletonNetworkBehavior:Multiplayer-[{typeof(T)}] Singleton instance started.");
+                Logwin.Log("SingletonNetworkBehavior", $"[{typeof(T)}] Singleton instance started.", "Multiplayer");
             }
         }
     }

@@ -10,7 +10,7 @@ namespace MidniteOilSoftware.Core.Othello
         {
             base.InitializeSession();
             if (_enableDebugLog)
-                Debug.Log("OthelloGameSessionInitializer:Multiplayer-Initializing Othello game session...");
+                Logwin.Log("OthelloGameSessionInitializer", "Initializing Othello game session...", "Multiplayer");
             ProjectSceneManager.Instance.SetupSceneManagementAndLoadGameScene();
         }
     }

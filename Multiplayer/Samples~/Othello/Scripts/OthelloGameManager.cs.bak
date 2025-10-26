@@ -27,7 +27,9 @@ namespace MidniteOilSoftware.Multiplayer.Othello
 
                 if (_enableDebugLog)
                 {
-                    Debug.LogWarning($"OthelloGameManager:Multiplayer-LocalPlayerIndex {localPlayerIndex} out of range of PlayerChipColors.Count {PlayerChipColors.Count}. Using default White.");
+                    Logwin.LogWarning("OthelloGameManager",
+                        $"LocalPlayerIndex {localPlayerIndex} out of range of PlayerChipColors.Count {PlayerChipColors.Count}. Using default White.",
+                        "Multiplayer");
                 }
                 return ChipColor.White;
             }
@@ -45,14 +47,16 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                 if (LocalOthelloPlayer == null)
                 {
                     if (_enableDebugLog)
-                        Debug.LogWarning("OthelloGameManager:Multiplayer-LocalOthelloPlayer is null");
+                        Logwin.LogWarning("OthelloGameManager", "LocalOthelloPlayer is null", "Multiplayer");
                     return -1;
                 }
                 
                 var index = OthelloPlayers.IndexOf(LocalOthelloPlayer);
                 if (index == -1 && _enableDebugLog)
                 {
-                    Debug.LogWarning($"OthelloGameManager:Multiplayer-LocalOthelloPlayer {LocalOthelloPlayer.PlayerName.Value} not found in OthelloPlayers list");
+                    Logwin.LogWarning("OthelloGameManager", 
+                        $"LocalOthelloPlayer {LocalOthelloPlayer.PlayerName.Value} not found in OthelloPlayers list", 
+                        "Multiplayer");
                 }
                 return index;
             }
@@ -107,7 +111,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         protected override void ServerOnlyHandleGameStateChange()
         {
             if (_enableDebugLog)
-                Debug.Log($"OthelloGameManager:Multiplayer-ServerOnlyHandleGameStateChange. CurrentState = {CurrentState}");
+                Logwin.Log("OthelloGameManager", $"ServerOnlyHandleGameStateChange. CurrentState = {CurrentState}", "Multiplayer");
             
             if (CurrentState == GameState.GameStarted)
             {
@@ -119,7 +123,9 @@ namespace MidniteOilSoftware.Multiplayer.Othello
                 else
                 {
                     if (_enableDebugLog)
-                        Debug.LogError($"OthelloGameManager:Multiplayer-Not enough players to start game. Current: {Players.Count}, Required: 2");
+                        Logwin.LogError("OthelloGameManager", 
+                            $"Not enough players to start game. Current: {Players.Count}, Required: 2", 
+                            "Multiplayer");
                     return;
                 }
             }
@@ -134,7 +140,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         void InitializePlayerOrderAndChipColors()
         {
             if (_enableDebugLog)
-                Debug.Log("OthelloGameManager:Multiplayer-Initializing player order and chip colors");
+                Logwin.Log("OthelloGameManager", "Initializing player order and chip colors", "Multiplayer");
             
             PlayerChipColors.Clear();
             var chipColor = (ChipColor)Random.Range(0, 2);
@@ -144,9 +150,15 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             
             if (_enableDebugLog)
             {
-                Debug.Log($"OthelloGameManager:Multiplayer-Setting player chip colors. Player 0 = {(ChipColor)PlayerChipColors[0]} Player 1 = {(ChipColor)PlayerChipColors[1]}");
-                Debug.Log($"OthelloGameManager:Multiplayer-LocalPlayer({LocalPlayerIndex}) ChipColor = {LocalPlayerChipColor}");
-                Debug.Log($"OthelloGameManager:Multiplayer-_currentPlayerTurnIndex.Value = {_currentPlayerTurnIndex.Value}");
+                Logwin.Log("OthelloGameManager", 
+                    $"Setting player chip colors. Player 0 = {(ChipColor)PlayerChipColors[0]} Player 1 = {(ChipColor)PlayerChipColors[1]}", 
+                    "Multiplayer");
+                Logwin.Log("OthelloGameManager", 
+                    $"LocalPlayer({LocalPlayerIndex}) ChipColor = {LocalPlayerChipColor}", 
+                    "Multiplayer");
+                Logwin.Log("OthelloGameManager", 
+                    $"_currentPlayerTurnIndex.Value = {_currentPlayerTurnIndex.Value}", 
+                    "Multiplayer");
             }
             
             PlayerPassed.Clear();
@@ -180,7 +192,9 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             }
             
             if (_enableDebugLog)
-                Debug.Log($"OthelloGameManager:Multiplayer-{CurrentPlayerChipColor} passed. {playersPassed}/{OthelloPlayers.Count} players have passed.");
+                Logwin.Log("OthelloGameManager", 
+                    $"{CurrentPlayerChipColor} passed. {playersPassed}/{OthelloPlayers.Count} players have passed.", 
+                    "Multiplayer");
 
             SetGameState(playersPassed == OthelloPlayers.Count 
                 ? GameState.GameOver : GameState.PlayerTurnEnd);
@@ -196,7 +210,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         protected override void CleanupSession()
         {
             if (_enableDebugLog)
-                Debug.Log("OthelloGameManager:Multiplayer-Cleaning up OthelloGameManager session");
+                Logwin.Log("OthelloGameManager", "Cleaning up OthelloGameManager session", "Multiplayer");
             
             ClearCollections();
             base.CleanupSession();

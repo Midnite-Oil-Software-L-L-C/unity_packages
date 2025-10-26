@@ -32,7 +32,7 @@ namespace MidniteOilSoftware.Multiplayer
             DontDestroyOnLoad(gameObject);
             
             if (_enableDebugLog)
-                Debug.Log("NetworkPlayer:Multiplayer-NetworkPlayer Awake - DontDestroyOnLoad set");
+                Logwin.Log("NetworkPlayer", $"NetworkPlayer Awake - DontDestroyOnLoad set", "Multiplayer");
         }
 
         public override void OnNetworkSpawn()
@@ -40,14 +40,18 @@ namespace MidniteOilSoftware.Multiplayer
             base.OnNetworkSpawn();
     
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-NetworkPlayer OnNetworkSpawn - ClientId: {OwnerClientId}, IsLocalPlayer: {IsLocalPlayer}");
+                Logwin.Log("NetworkPlayer", 
+                    $"NetworkPlayer OnNetworkSpawn - ClientId: {OwnerClientId}, IsLocalPlayer: {IsLocalPlayer}", 
+                    "Multiplayer");
     
             // Send player name to server if this is the local player
             if (IsLocalPlayer && !IsHost)
             {
                 var playerName = AuthenticationManager.Instance?.PlayerName ?? "Unknown";
                 if (_enableDebugLog)
-                    Debug.Log($"NetworkPlayer:Multiplayer-Sending player name '{playerName}' to server");
+                    Logwin.Log("NetworkPlayer", 
+                        $"Sending player name '{playerName}' to server", 
+                        "Multiplayer");
                 SetPlayerNameServerRpc(playerName);
             }
     
@@ -57,20 +61,23 @@ namespace MidniteOilSoftware.Multiplayer
             // Register with PlayerRegistry once spawned
             if (!PlayerRegistry.Instance) return;
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-Registering player {OwnerClientId} with PlayerRegistry");
+                Logwin.Log("NetworkPlayer", 
+                    $"Registering player {OwnerClientId} with PlayerRegistry", "Multiplayer");
             PlayerRegistry.Instance.RegisterPlayer(this);
         }
 
         public override void OnNetworkDespawn()
         {
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-NetworkPlayer OnNetworkDespawn - ClientId: {OwnerClientId}");
+                Logwin.Log("NetworkPlayer", 
+                    $"NetworkPlayer OnNetworkDespawn - ClientId: {OwnerClientId}", "Multiplayer");
             
             // Unregister from PlayerRegistry when despawning
             if (PlayerRegistry.Instance != null)
             {
                 if (_enableDebugLog)
-                    Debug.Log($"NetworkPlayer:Multiplayer-Unregistering player {OwnerClientId} from PlayerRegistry");
+                    Logwin.Log("NetworkPlayer", 
+                        $"Unregistering player {OwnerClientId} from PlayerRegistry", "Multiplayer");
                 PlayerRegistry.Instance.UnregisterPlayer(this);
             }
             
@@ -82,7 +89,9 @@ namespace MidniteOilSoftware.Multiplayer
             if (!IsServer) return; // only server can set NetworkVariables!
     
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-InitializePlayer called - ClientId: {OwnerClientId}, IsServer: {IsServer}");
+                Logwin.Log("NetworkPlayer", 
+                    $"InitializePlayer called - ClientId: {OwnerClientId}, IsServer: {IsServer}", 
+                    "Multiplayer");
     
             // For host player, set name immediately
             if (IsLocalPlayer)
@@ -92,7 +101,9 @@ namespace MidniteOilSoftware.Multiplayer
                 gameObject.name = "NetworkPlayer (" + PlayerName.Value + ")";
         
                 if (_enableDebugLog)
-                    Debug.Log($"NetworkPlayer:Multiplayer-Set host player name to '{playerName}'");
+                    Logwin.Log("NetworkPlayer", 
+                        $"Set host player name to '{playerName}'", 
+                        "Multiplayer");
             }
             // For remote players, the name will be set via SetPlayerNameServerRpc
     
@@ -102,7 +113,9 @@ namespace MidniteOilSoftware.Multiplayer
             PlayerConnectionsManager.Instance.RegisterPlayerAndRemoveDuplicates(this);
 
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-Player initialization completed for {OwnerClientId}: {PlayerName.Value}. PlayerId={PlayerId.Value}");
+                Logwin.Log("NetworkPlayer", 
+                    $"Player initialization completed for {OwnerClientId}: {PlayerName.Value}. PlayerId={PlayerId.Value}", 
+                    "Multiplayer");
         }
 
         [ServerRpc(RequireOwnership = false)]
@@ -111,14 +124,18 @@ namespace MidniteOilSoftware.Multiplayer
             var clientId = rpcParams.Receive.SenderClientId;
     
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-Received SetPlayerNameServerRpc from client {clientId} with name '{playerName}'");
+                Logwin.Log("NetworkPlayer", 
+                    $"Received SetPlayerNameServerRpc from client {clientId} with name '{playerName}'", 
+                    "Multiplayer");
     
             if (OwnerClientId != clientId) return;
             PlayerName.Value = playerName;
             gameObject.name = "NetworkPlayer (" + PlayerName.Value + ")";
         
             if (_enableDebugLog)
-                Debug.Log($"NetworkPlayer:Multiplayer-Set PlayerName to '{playerName}' for ClientId {clientId}");
+                Logwin.Log("NetworkPlayer", 
+                    $"Set PlayerName to '{playerName}' for ClientId {clientId}", 
+                    "Multiplayer");
         }
     }
 }

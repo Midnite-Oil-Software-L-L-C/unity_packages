@@ -122,7 +122,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         #region Button events
         async void TryStartGame()
         {
-            if (_enableDebugLog) Debug.Log("CurrentLobbyPanel:Multiplayer-TryStartGame called");
+            if (_enableDebugLog) Logwin.Log("CurrentLobbyPanel", "TryStartGame called", "Multiplayer");
             _startGameButton.interactable = false;
             _startingGamePanel.SetActive(true);
            
