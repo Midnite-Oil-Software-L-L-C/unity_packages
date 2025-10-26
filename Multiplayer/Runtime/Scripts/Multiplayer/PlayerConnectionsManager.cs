@@ -58,14 +58,7 @@ namespace MidniteOilSoftware.Multiplayer
 
         public void RegisterPlayerAndRemoveDuplicates(NetworkPlayer networkPlayer)
         {
-            if (!IsServer)
-            {
-                if (_enableDebugLog) 
-                    Logwin.LogError("PlayerConnectionsManager", 
-                        "RegisterPlayerAndRemoveDuplicates called on client, this should only be called on the server.", 
-                        "Multiplayer");
-                return;
-            }
+            if (!IsServer) return;
             if (_enableDebugLog) 
                 Logwin.Log("PlayerConnectionsManager", 
                     $"Registering player {networkPlayer.PlayerName.Value.Value} with ClientId {networkPlayer.OwnerClientId} on Server", 
