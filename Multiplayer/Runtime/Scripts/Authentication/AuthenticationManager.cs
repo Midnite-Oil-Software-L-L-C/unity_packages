@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using MidniteOilSoftware.Core;
 using Unity.Netcode;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
+using UnityEngine;
 
 namespace MidniteOilSoftware.Multiplayer.Authentication
 {
