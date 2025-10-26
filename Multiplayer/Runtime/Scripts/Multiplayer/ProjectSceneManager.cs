@@ -90,7 +90,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         IEnumerator LoadSceneAsync(string sceneName = default, LoadSceneMode loadSceneMode = LoadSceneMode.Additive)
         {
             IsLoading = true;
-            if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"LoadSceneAsync {sceneName}", "Multiplayer");
+            if (_enableDebugLog) Debug.Log($"Multiplayer:ProjectSceneManager - LoadSceneAsync {sceneName}");
             var currentScene = GetCurrentScene();
 
             if (currentScene != default && currentScene.Item1.name != sceneName)

@@ -272,16 +272,16 @@ namespace MidniteOilSoftware.Multiplayer
         [ContextMenu("Debug Player State")]
         public void DebugPlayerState()
         {
-            Debug.Log("PlayerRegistry", "=== PLAYER REGISTRY DEBUG ===", "Multiplayer");
-            Debug.Log("PlayerRegistry", $"Total registered players: {PlayerCount}", "Multiplayer");
-            Debug.Log("PlayerRegistry", $"LocalPlayer: {(LocalPlayer ? LocalPlayer.PlayerName.Value.ToString() : "null")}", "Multiplayer");
+            Debug.Log("Multiplayer:PlayerRegistry - === PLAYER REGISTRY DEBUG ===");
+            Debug.Log($"Multiplayer:PlayerRegistry - Total registered players: {PlayerCount}");
+            Debug.Log($"Multiplayer:PlayerRegistry - LocalPlayer: {(LocalPlayer ? LocalPlayer.PlayerName.Value.ToString() : "null")}");
 
             for (int i = 0; i < _playerList.Count; i++)
             {
                 var player = _playerList[i];
-                Debug.Log($"PlayerRegistry - Player {i}: {player.PlayerName.Value} (ClientId: {player.OwnerClientId}, IsLocal: {player.IsLocalPlayer})", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - PlayerRegistry - Player {i}: {player.PlayerName.Value} (ClientId: {player.OwnerClientId}, IsLocal: {player.IsLocalPlayer})");
             }
-            Debug.Log("PlayerRegistry - === END DEBUG ===", "Multiplayer");
+            Debug.Log("Multiplayer:PlayerRegistry - PlayerRegistry - === END DEBUG ===");
         }
     }
 }
