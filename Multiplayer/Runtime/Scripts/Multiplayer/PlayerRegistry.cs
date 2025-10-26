@@ -22,7 +22,7 @@ namespace MidniteOilSoftware.Multiplayer
         {
             base.Awake();
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", "PlayerRegistry Awake called - should persist across scenes", "Multiplayer");
+                Debug.Log("Multiplayer:PlayerRegistry - PlayerRegistry Awake called - should persist across scenes");
         }
 
         protected override void Start()
@@ -30,7 +30,7 @@ namespace MidniteOilSoftware.Multiplayer
             base.Start();
             
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"PlayerRegistry Start - IsHost: {IsHost}, Current player count: {PlayerCount}", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - PlayerRegistry Start - IsHost: {IsHost}, Current player count: {PlayerCount}");
 
             if (!IsHost) return;
             NetworkManager.Singleton.OnClientConnectedCallback += HandleClientConnected;
@@ -40,7 +40,7 @@ namespace MidniteOilSoftware.Multiplayer
         public override void OnDestroy()
         {
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", "PlayerRegistry OnDestroy called", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - PlayerRegistry OnDestroy called");
                 
             if (NetworkManager.Singleton != null)
             {
@@ -55,7 +55,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (!IsHost) return;
             
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"Client {clientId} connected. Current player count: {PlayerCount}", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Client {clientId} connected. Current player count: {PlayerCount}");
         }
 
         void HandleClientDisconnected(ulong clientId)
@@ -63,7 +63,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (!IsHost) return;
             
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"Client {clientId} disconnected. Current player count: {PlayerCount}", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Client {clientId} disconnected. Current player count: {PlayerCount}");
             
             if (_registeredPlayers.TryGetValue(clientId, out var player))
             {
@@ -76,7 +76,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (player == null)
             {
                 if (_enableDebugLog)
-                    Logwin.LogError("PlayerRegistry", "Attempted to register null player", "Multiplayer");
+                    Debug.LogError($"Multiplayer:PlayerRegistry - Attempted to register null player");
                 return;
             }
 
@@ -85,8 +85,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (_registeredPlayers.ContainsKey(clientId))
             {
                 if (_enableDebugLog)
-                    Logwin.LogWarning("PlayerRegistry", 
-                        $"Player with clientId {clientId} already registered. Skipping.", "Multiplayer");
+                    Debug.LogWarning($"Multiplayer:PlayerRegistry - Player with clientId {clientId} already registered. Skipping.");
                 return;
             }
 
@@ -97,13 +96,11 @@ namespace MidniteOilSoftware.Multiplayer
             {
                 LocalPlayer = player;
                 if (_enableDebugLog)
-                    Logwin.Log("PlayerRegistry", $"Set LocalPlayer to {player.PlayerName.Value}", "Multiplayer");
+                    Debug.Log($"Multiplayer:PlayerRegistry - Set LocalPlayer to {player.PlayerName.Value}");
             }
 
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", 
-                    $"✅ Registered player {player.PlayerName.Value} (ClientId: {clientId}). Total players: {_playerList.Count}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - ✅ Registered player {player.PlayerName.Value} (ClientId: {clientId}). Total players: {_playerList.Count}");       
 
             OnPlayerRegistered?.Invoke(player);
             OnPlayersChanged?.Invoke();
@@ -124,8 +121,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (!_registeredPlayers.ContainsKey(clientId))
             {
                 if (_enableDebugLog)
-                    Logwin.LogWarning("PlayerRegistry", 
-                        $"Attempted to unregister player {clientId} that wasn't registered", "Multiplayer");
+                    Debug.LogWarning($"Multiplayer:PlayerRegistry - Attempted to unregister player {clientId} that wasn't registered");
                 return;
             }
 
@@ -136,13 +132,11 @@ namespace MidniteOilSoftware.Multiplayer
             {
                 LocalPlayer = null;
                 if (_enableDebugLog)
-                    Logwin.Log("PlayerRegistry", "LocalPlayer set to null", "Multiplayer");
+                    Debug.Log($"Multiplayer:PlayerRegistry - LocalPlayer set to null");
             }
 
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", 
-                    $"❌ Unregistered player {player.PlayerName.Value} (ClientId: {clientId}). Total players: {_playerList.Count}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Unregistered player {player.PlayerName.Value} (ClientId: {clientId}). Total players: {_playerList.Count}");
 
             OnPlayerUnregistered?.Invoke(player);
             OnPlayersChanged?.Invoke();
@@ -172,14 +166,14 @@ namespace MidniteOilSoftware.Multiplayer
         public List<NetworkPlayer> GetPlayers()
         {
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"GetPlayers called - returning {_playerList.Count} players", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - GetPlayers called - returning {_playerList.Count} players");
             return new List<NetworkPlayer>(_playerList);
         }
 
         public void ClearPlayers()
         {
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", "Clearing all players", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Clearing all players");
             
             _registeredPlayers.Clear();
             _playerList.Clear();
@@ -191,7 +185,7 @@ namespace MidniteOilSoftware.Multiplayer
         void NotifyPlayerRegisteredClientRpc(ulong clientId)
         {
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"NotifyPlayerRegisteredClientRpc for client {clientId}", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - NotifyPlayerRegisteredClientRpc for client {clientId}");
                 
             // On clients, we need to find the player object and register it locally
             var playerObject = NetworkManager.Singleton.SpawnManager.GetPlayerNetworkObject(clientId);
@@ -205,13 +199,13 @@ namespace MidniteOilSoftware.Multiplayer
                 else
                 {
                     if (_enableDebugLog)
-                        Logwin.LogError("PlayerRegistry", $"No NetworkPlayer component on player object for client {clientId}", "Multiplayer");
+                        Debug.LogError($"Multiplayer:PlayerRegistry - No NetworkPlayer component on player object for client {clientId}");
                 }
             }
             else
             {
                 if (_enableDebugLog)
-                    Logwin.LogError("PlayerRegistry", $"No player object found for client {clientId}", "Multiplayer");
+                    Debug.LogError($"Multiplayer:PlayerRegistry - No player object found for client {clientId}");
             }
         }
 
@@ -219,7 +213,7 @@ namespace MidniteOilSoftware.Multiplayer
         void NotifyPlayerUnregisteredClientRpc(ulong clientId)
         {
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", $"NotifyPlayerUnregisteredClientRpc for client {clientId}", "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - NotifyPlayerUnregisteredClientRpc for client {clientId}");
                 
             if (_registeredPlayers.TryGetValue(clientId, out var player))
             {
@@ -234,8 +228,7 @@ namespace MidniteOilSoftware.Multiplayer
             if (_registeredPlayers.ContainsKey(clientId))
             {
                 if (_enableDebugLog)
-                    Logwin.LogWarning("PlayerRegistry", 
-                        $"Client: Player {clientId} already registered locally", "Multiplayer");
+                    Debug.LogWarning($"Multiplayer:PlayerRegistry - Client: Player {clientId} already registered locally");
                 return;
             }
 
@@ -248,9 +241,7 @@ namespace MidniteOilSoftware.Multiplayer
             }
 
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", 
-                    $"Client: Registered player {player.PlayerName.Value} locally. Total: {_playerList.Count}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Client: Registered player {player.PlayerName.Value} locally. Total: {_playerList.Count}");
 
             OnPlayerRegistered?.Invoke(player);
             OnPlayersChanged?.Invoke();
@@ -271,9 +262,7 @@ namespace MidniteOilSoftware.Multiplayer
             }
 
             if (_enableDebugLog)
-                Logwin.Log("PlayerRegistry", 
-                    $"Client: Unregistered player {player.PlayerName.Value} locally. Total: {_playerList.Count}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:PlayerRegistry - Client: Unregistered player {player.PlayerName.Value} locally. Total: {_playerList.Count}");
 
             OnPlayerUnregistered?.Invoke(player);
             OnPlayersChanged?.Invoke();
@@ -283,18 +272,16 @@ namespace MidniteOilSoftware.Multiplayer
         [ContextMenu("Debug Player State")]
         public void DebugPlayerState()
         {
-            Logwin.Log("PlayerRegistry", "=== PLAYER REGISTRY DEBUG ===", "Multiplayer");
-            Logwin.Log("PlayerRegistry", $"Total registered players: {PlayerCount}", "Multiplayer");
-            Logwin.Log("PlayerRegistry", $"LocalPlayer: {(LocalPlayer ? LocalPlayer.PlayerName.Value.ToString() : "null")}", "Multiplayer");
-            
+            Debug.Log("PlayerRegistry", "=== PLAYER REGISTRY DEBUG ===", "Multiplayer");
+            Debug.Log("PlayerRegistry", $"Total registered players: {PlayerCount}", "Multiplayer");
+            Debug.Log("PlayerRegistry", $"LocalPlayer: {(LocalPlayer ? LocalPlayer.PlayerName.Value.ToString() : "null")}", "Multiplayer");
+
             for (int i = 0; i < _playerList.Count; i++)
             {
                 var player = _playerList[i];
-                Logwin.Log("PlayerRegistry", 
-                    $"Player {i}: {player.PlayerName.Value} (ClientId: {player.OwnerClientId}, IsLocal: {player.IsLocalPlayer})", 
-                    "Multiplayer");
+                Debug.Log($"PlayerRegistry - Player {i}: {player.PlayerName.Value} (ClientId: {player.OwnerClientId}, IsLocal: {player.IsLocalPlayer})", "Multiplayer");
             }
-            Logwin.Log("PlayerRegistry", "=== END DEBUG ===", "Multiplayer");
+            Debug.Log("PlayerRegistry - === END DEBUG ===", "Multiplayer");
         }
     }
 }

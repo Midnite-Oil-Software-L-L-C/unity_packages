@@ -43,17 +43,14 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Logwin.LogError("ProjectSceneManager", 
-                        "SceneManager Events registered on client, this should not be called.", "Multiplayer");
+                    Debug.LogError("Multiplayer:ProjectSceneManager - SceneManager Events registered on client, this should not be called.";
                 }
                 return;
             }
 
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager", 
-                    "SetupSceneManagementAndLoadNextTrack - Registering for Scene events on SERVER",
-                    "Multiplayer");
+                Debug.Log("Multiplayer:ProjectSceneManager - SetupSceneManagementAndLoadNextTrack - Registering for Scene events on SERVER");
             }
             NetworkManager.Singleton.SceneManager.VerifySceneBeforeLoading = VerifySceneBeforeLoading;
             NetworkManager.Singleton.SceneManager.OnLoadEventCompleted -= HandleLoadEventCompletedForAllPlayers;
@@ -69,8 +66,8 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             // If no main menu scene specified or already loaded, do nothing
             if (string.IsNullOrEmpty(_mainMenuSceneName) || 
                 SceneManager.GetSceneByName(_mainMenuSceneName).IsValid()) return;
-           
-            if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"Loading Main Menu Scene: {_mainMenuSceneName}", "Multiplayer");
+
+            if (_enableDebugLog) Debug.Log($"Multiplayer:ProjectSceneManager - Loading Main Menu Scene: {_mainMenuSceneName}");
             SceneManager.LoadSceneAsync(_mainMenuSceneName, LoadSceneMode.Single);
         }
 
@@ -78,7 +75,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager", "Loading Game Scene", "Multiplayer");
+                Debug.Log($"Multiplayer:ProjectSceneManager - Loading Game Scene: {_gameSceneName}");
             }
             StartCoroutine(LoadSceneAsync(_gameSceneName));
         }
@@ -86,10 +83,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         static bool VerifySceneBeforeLoading(int sceneIndex, string sceneName, LoadSceneMode loadSceneMode)
         {
             var isValid = sceneName != "Main Menu";
-            Logwin.Log("ProjectSceneManager",
-                "Doing Verification for " + sceneName +
-                " (filtering out UserInterface, everything else passes verification. IsValid: " + isValid + ")",
-                "Multiplayer");
+            Debug.Log($"Multiplayer:ProjectSceneManager - Doing Verification for {sceneName} (filtering out UserInterface, everything else passes verification. IsValid: {isValid})");
             return isValid;
         }
 
@@ -101,7 +95,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
             if (currentScene != default && currentScene.Item1.name != sceneName)
             {
-                if (_enableDebugLog) Logwin.Log("ProjectSceneManager", $"Unloading current scene {currentScene.Item1.name}", "Multiplayer");
+                if (_enableDebugLog) Debug.Log($"Multiplayer:ProjectSceneManager - Unloading current scene {currentScene.Item1.name}");
                 yield return UnloadScene(currentScene.Item1);
             }
             
@@ -113,7 +107,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             }
             catch (Exception e)
             {
-                Logwin.LogError("ProjectSceneManager", $"Exception loading scene {sceneName} {e}", "Multiplayer");
+                Debug.LogError($"Multiplayer:ProjectSceneManager - Exception loading scene {sceneName} {e}");
                 IsLoading = false;
             }
         }
@@ -128,9 +122,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager", 
-                    $"HandleLoadCompleteForIndividualPlayer: Scene {sceneName} loaded for client {clientId}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:ProjectSceneManager - HandleLoadCompleteForIndividualPlayer: Scene {sceneName} loaded for client {clientId}");
             }
 
             // Try to get player object, but don't error if it's not available yet
@@ -140,9 +132,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Logwin.Log("ProjectSceneManager", 
-                        $"PlayerNetworkObject not yet available for clientId {clientId} - this is normal during scene transitions", 
-                        "Multiplayer");
+                    Debug.Log($"Multiplayer:ProjectSceneManager - PlayerNetworkObject not yet available for clientId {clientId} - this is normal during scene transitions");
                 }
                 
                 // Optionally retry after a short delay
@@ -162,9 +152,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Logwin.Log("ProjectSceneManager", 
-                        $"Successfully found PlayerNetworkObject for clientId {clientId} after delay", 
-                        "Multiplayer");
+                    Debug.Log($"Multiplayer:ProjectSceneManager - Successfully found PlayerNetworkObject for clientId {clientId} after delay");
                 }
                 ProcessPlayerForScene(clientId, playerNetworkObject);
             }
@@ -172,9 +160,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Logwin.LogWarning("ProjectSceneManager", 
-                        $"PlayerNetworkObject still not available for clientId {clientId} after {delay}s delay", 
-                        "Multiplayer");
+                    Debug.LogWarning($"Multiplayer:ProjectSceneManager - PlayerNetworkObject still not available for clientId {clientId} after {delay}s delay");
                 }
             }
         }
@@ -186,9 +172,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             {
                 if (_enableDebugLog)
                 {
-                    Logwin.LogError("ProjectSceneManager", 
-                        $"No NetworkPlayer component on PlayerNetworkObject for clientId {clientId}", 
-                        "Multiplayer");
+                    Debug.LogError($"Multiplayer:ProjectSceneManager - No NetworkPlayer component on PlayerNetworkObject for clientId {clientId}");
                 }
                 return;
             }
@@ -199,9 +183,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager", 
-                    $"Player {playerName} (ID: {playerId}) loaded into scene {_gameSceneName}", 
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:ProjectSceneManager - Player {playerName} (ID: {playerId}) loaded into scene {_gameSceneName}");
             }
 
             // Add any additional player processing logic here if needed
@@ -213,9 +195,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager",
-                    $"HandleLoadEventCompletedForAllPlayers {sceneName} {loadSceneMode} Completed:{clientsCompleted.Count} TimedOut:{clientsTimedOut.Count}",
-                    "Multiplayer");
+                Debug.Log($"Multiplayer:ProjectSceneManager - HandleLoadEventCompletedForAllPlayers {sceneName} {loadSceneMode} Completed:{clientsCompleted.Count} TimedOut:{clientsTimedOut.Count}");
             }
             IsLoading = false;
         }
@@ -254,7 +234,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             catch (Exception e)
             {
                 NetworkManager.SceneManager.OnUnloadComplete -= UnloadComplete;
-                Logwin.LogError("ProjectSceneManager", $"Exception unloading scene {scene.name} {e}", "Multiplayer");
+                Debug.LogError($"Multiplayer:ProjectSceneManager - Exception unloading scene {scene.name} {e}");
                 _unloading = false;
             }
             while (_unloading) yield return null;
@@ -271,7 +251,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             var currentScene = GetCurrentScene();
             if (_enableDebugLog)
             {
-                Logwin.Log("ProjectSceneManager", $"Unloading current scene {currentScene.Item1.name}", "Multiplayer");
+                Debug.Log($"Multiplayer:ProjectSceneManager - Unloading current scene {currentScene.Item1.name}");
             }
             yield return UnloadScene(currentScene.Item1);
         }
