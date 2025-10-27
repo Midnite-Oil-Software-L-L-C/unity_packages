@@ -8,6 +8,53 @@ A complete multiplayer framework for Unity using [Netcode for GameObjects](https
 
 This package provides everything you need to quickly build turn-based and real-time multiplayer games with authentication, lobby management, session handling, and network synchronization.
 
+## 📖 Table of Contents
+
+- [✨ Features](#-features)
+- [📋 Requirements](#-requirements)
+- [🚀 Installation](#-installation)
+  - [Installation Flow](#installation-flow)
+  - [Step 1: Install Core Package (Dependency)](#step-1-install-core-package-dependency)
+  - [Step 2: Install Multiplayer Package](#step-2-install-multiplayer-package)
+  - [Step 3: Import Othello Sample (Optional but Recommended)](#step-3-import-othello-sample-optional-but-recommended)
+- [🎮 Quick Start](#-quick-start)
+  - [1. Set Up Unity Gaming Services](#1-set-up-unity-gaming-services)
+  - [2. Configure Build Settings](#2-configure-build-settings)
+  - [3. Run the Demo](#3-run-the-demo)
+- [🏗️ Architecture](#️-architecture)
+  - [Framework Flow](#framework-flow)
+  - [Dependency Hierarchy](#dependency-hierarchy)
+  - [Game State Machine](#game-state-machine)
+  - [Event-Driven Communication](#event-driven-communication)
+- [📦 What's Included](#-whats-included)
+  - [Core Components](#core-components)
+  - [Sample: Othello Complete Game](#sample-othello-complete-game)
+- [🔧 Building Your Own Multiplayer Game](#-building-your-own-multiplayer-game)
+  - [1. Create Your Game Manager](#1-create-your-game-manager)
+  - [2. Create Custom Events](#2-create-custom-events)
+  - [3. Use Network Synchronization](#3-use-network-synchronization)
+  - [4. Player Management](#4-player-management)
+  - [5. Using Core Utilities](#5-using-core-utilities)
+- [🗂️ Package Structure](#️-package-structure)
+- [🎓 Best Practices](#-best-practices)
+  - [Server Authoritative Design](#server-authoritative-design)
+  - [Event Cleanup](#event-cleanup)
+  - [Network Ownership](#network-ownership)
+  - [Use NetworkVariables Wisely](#use-networkvariables-wisely)
+- [🤝 Dependencies](#-dependencies)
+- [🐛 Troubleshooting](#-troubleshooting)
+  - [Common Issues](#common-issues)
+- [📚 Documentation](#-documentation)
+  - [Unity Documentation](#unity-documentation)
+  - [Helpful Resources](#helpful-resources)
+- [🔄 Version History](#-version-history)
+- [📝 License](#-license)
+- [🙏 Credits](#-credits)
+- [💬 Support](#-support)
+- [🌟 Show Your Support](#-show-your-support)
+
+
+
 ## ✨ Features
 
 - 🎮 **Complete Multiplayer Framework** - Built on Netcode for GameObjects
