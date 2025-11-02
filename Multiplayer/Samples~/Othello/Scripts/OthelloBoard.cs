@@ -217,7 +217,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
             }
             var cell = _cells[x, y];
             var chip = Instantiate(_chipPrefab, cell.transform).GetComponent<Chip>();
-            chip.SetColor(_gameManager.CurrentPlayerChipColor);
+            chip.SetColor(chipColor);
             cell.DropChip(chip);
             EventBus.Instance.Raise(new ChipDroppedEvent((int)chipColor));
             var surroundedChips = FindSurroundedChips(x, y, chipColor);

@@ -190,43 +190,14 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         }
         #endregion Current player animation
 
-        void UpdatePlayerDisplay()
-        {
-            if (!_gameManager.IsPlaying.Value) return;
-            if (_gameManager.PlayerChipColors is not { Count: 2 }) return;
-            _getReadyText.gameObject.SetActive(false);
-            ShowPassButton();
-            ShowResignButton();
-            for (var i = 0; i < _gameManager.OthelloPlayers.Count; i++)
-            {
-                var player = _gameManager.OthelloPlayers[i] as OthelloPlayer;
-                if (player == null)
-                {
-                    _playerNames[i].text = "<no name>";
-                    continue;
-                }
-                var playerChipColors = _gameManager.PlayerChipColors;
-                if (playerChipColors is not { Count: 2 })
-                {
-                    continue;
-                }
-                var chipColor = (ChipColor)playerChipColors[i];
-                _playerNames[i].text = player.PlayerName.Value.ToString();
-                _playerScores[i].text = chipColor == ChipColor.Black
-                    ? _othelloBoard.BlackChips.ToString()
-                    : _othelloBoard.WhiteChips.ToString();
-                _playerChips[i].sprite = _chipSprites[(int)chipColor];
-            }
-        }
-
         int LocalPlayerChips => _gameManager.LocalPlayerChipColor == ChipColor.Black
             ? _othelloBoard.BlackChips
             : _othelloBoard.WhiteChips;
-        
+
         int OpponentChips => _gameManager.LocalPlayerChipColor == ChipColor.Black
             ? _othelloBoard.WhiteChips
             : _othelloBoard.BlackChips;
-        
+
         void ShowResignButton()
         {
             for(var i = 0; i < _resignButtons.Length; i++)
@@ -288,6 +259,36 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         {
             _gameOverPanel.SetActive(true);
             _winnerText.text = _othelloBoard.BlackChips > _othelloBoard.WhiteChips ? "Black Wins!" : "White Wins!";
+        }
+
+        void UpdatePlayerDisplay()
+        {
+            if (_gameManager.PlayerChipColors is not { Count: 2 }) return;
+            _getReadyText.gameObject.SetActive(false);
+            for (var i = 0; i < _gameManager.OthelloPlayers.Count; i++)
+            {
+                var player = _gameManager.OthelloPlayers[i] as OthelloPlayer;
+                if (player == null)
+                {
+                    _playerNames[i].text = "<no name>";
+                    continue;
+                }
+                var playerChipColors = _gameManager.PlayerChipColors;
+                if (playerChipColors is not { Count: 2 })
+                {
+                    continue;
+                }
+                var chipColor = (ChipColor)playerChipColors[i];
+                _playerNames[i].text = player.PlayerName.Value.ToString();
+                _playerScores[i].text = chipColor == ChipColor.Black
+                    ? _othelloBoard.BlackChips.ToString()
+                    : _othelloBoard.WhiteChips.ToString();
+                _playerChips[i].sprite = _chipSprites[(int)chipColor];
+            }
+
+            if (!_gameManager.IsPlaying.Value) return;
+            ShowPassButton();
+            ShowResignButton();
         }
     }
 }

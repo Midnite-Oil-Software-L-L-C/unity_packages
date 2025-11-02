@@ -156,6 +156,7 @@ namespace MidniteOilSoftware.Multiplayer.Othello
         
         void ChipDroppedEventHandler(ChipDroppedEvent _)
         {
+            if (!IsServer) return;
             ClearPlayerPassedServerRpc();
             SetGameState(GameState.PlayerTurnEnd);
         }
