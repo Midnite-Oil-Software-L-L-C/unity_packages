@@ -31,13 +31,16 @@ namespace MidniteOilSoftware.Multiplayer.Samples.Othello.Editor
             }
 
             CreateDirectories(rootFolderName, 
+                "Art",
                 "Materials", 
                 "Models", 
+                "Music",
                 "Prefabs", 
                 "Scenes", 
                 "Scripts", 
                 "Scripts/Events",
                 "Scripts/Editor",
+                "Sounds",
                 "Textures");
             
             AssetDatabase.Refresh();

@@ -114,6 +114,7 @@ The Multiplayer package requires the Core package. Install it first:
 1. In Package Manager, find **"Midnite Oil Software Multiplayer Boilerplate"**
 2. Expand the **Samples** section
 3. Click **Import** next to "Othello Complete Game"
+4. Import TMP Essentials by opening the Main Menu scene and inspecting any TMP Text field in the inspector (e.g. Player Name under the --- Main Menu Canvas ---)
 
 ## 🎮 Quick Start
 
