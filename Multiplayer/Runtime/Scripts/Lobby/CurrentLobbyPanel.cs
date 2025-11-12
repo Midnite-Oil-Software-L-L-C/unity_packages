@@ -1,8 +1,10 @@
+using System.Collections.Generic;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Events;
 using MidniteOilSoftware.Multiplayer.UI;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 
 namespace MidniteOilSoftware.Multiplayer.Lobby
@@ -20,17 +22,18 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         [SerializeField] bool _enableDebugLog = true;
 
         Timer _refreshTimer;
+        ObjectPool<LobbyPlayerPanel> _playerPanelPool;
+        readonly List<LobbyPlayerPanel> _activePlayerPanels = new();
 
         public void Initialize()
         {
             Debug.Log($"Initialing CurrentLobbyPanel", this);
+            InitializeObjectPool();
             _gameNameComponent.SetActive(true);
             _editGameName.gameObject.SetActive(false);
             _startingGamePanel.SetActive(false);
             SubscribeToButtonHandlers();
             SubscribeToGameEvents();
-            // The logic for updating the lobby state should now be handled by events from the SessionManager
-            // The old LobbyManager.Instance.OnJoinedLobby, OnLeftLobby, and OnCurrentLobbyUpdated events are now handled differently
             InitializeRefreshTimer();
         }
 
@@ -47,6 +50,8 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             UnsubscribeFromButtonHandlers();
             UnsuscribeFromGameEvents();
             ReleaseRefreshTimer();
+            ReleaseAllActivePlayerPanels();
+            _playerPanelPool?.Clear();
         }
 
         void SubscribeToButtonHandlers()
@@ -85,6 +90,48 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         {
             _refreshTimer.OnTimerStop -= UpdateLobbyData;
             TimerManager.Instance.ReleaseTimer<CountdownTimer>(_refreshTimer);
+        }
+
+        void InitializeObjectPool()
+        {
+            _playerPanelPool = new ObjectPool<LobbyPlayerPanel>(
+                createFunc: () =>
+                {
+                    var panel = Instantiate(_playerPanelPrefab, _playersRoot);
+                    panel.gameObject.SetActive(false);
+                    return panel;
+                },
+                actionOnGet: panel =>
+                {
+                    panel.gameObject.SetActive(true);
+                },
+                actionOnRelease: panel =>
+                {
+                    panel.gameObject.SetActive(false);
+                },
+                actionOnDestroy: panel =>
+                {
+                    if (panel != null)
+                    {
+                        Destroy(panel.gameObject);
+                    }
+                },
+                collectionCheck: true,
+                defaultCapacity: 4,
+                maxSize: 10
+            );
+        }
+
+        void ReleaseAllActivePlayerPanels()
+        {
+            foreach (var panel in _activePlayerPanels)
+            {
+                if (panel != null)
+                {
+                    _playerPanelPool.Release(panel);
+                }
+            }
+            _activePlayerPanels.Clear();
         }
         
         void UpdateLobbyData()
@@ -140,15 +187,15 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             
             _gameNameText.text = activeSession.Name;
             
-            for (var i = _playersRoot.childCount - 1; i >= 0; i--)
-                Destroy(_playersRoot.GetChild(i).gameObject);
+            ReleaseAllActivePlayerPanels();
 
             _playersCountText.text = activeSession.Players.Count + " / " + activeSession.MaxPlayers;
             
             foreach (var player in activeSession.Players)
             {
-                var playerPanel = Instantiate(_playerPanelPrefab, _playersRoot);
+                var playerPanel = _playerPanelPool.Get();
                 playerPanel.Bind(player);
+                _activePlayerPanels.Add(playerPanel);
             }
         }
     }

@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Services.Multiplayer;
 using UnityEngine;
+using UnityEngine.Pool;
 using UnityEngine.UI;
 using MidniteOilSoftware.Core;
 using MidniteOilSoftware.Multiplayer.Authentication;
@@ -17,10 +18,14 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         [SerializeField] bool _enableDebugLog = false;
         
         Timer _refreshTimer;
+        ObjectPool<LobbyEntry> _lobbyEntryPool;
+        readonly List<LobbyEntry> _activeLobbyEntries = new();
         const float RefreshRate = 2.0f;
 
         public void Initialize()
         {
+            InitializeObjectPool();
+            
             _autoRefreshToggle.onValueChanged.RemoveAllListeners();
             _autoRefreshToggle.onValueChanged.AddListener(ToggleAutoRefresh);
             
@@ -50,6 +55,8 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
         void OnDestroy()
         {
             StopAutoRefresh();
+            ReleaseAllActiveLobbyEntries();
+            _lobbyEntryPool?.Clear();
             _hostButton.onClick.RemoveAllListeners();
             _refreshButton.onClick.RemoveAllListeners();
             _backButton.onClick.RemoveAllListeners();
@@ -119,16 +126,57 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 #endif
         }
 
-        // todo - refactor to use object pooling instead of destroying/instantiating
+        void InitializeObjectPool()
+        {
+            _lobbyEntryPool = new ObjectPool<LobbyEntry>(
+                createFunc: () =>
+                {
+                    var entry = Instantiate(_lobbyEntryPrefab, _lobbiesRoot);
+                    entry.gameObject.SetActive(false);
+                    return entry;
+                },
+                actionOnGet: entry =>
+                {
+                    entry.gameObject.SetActive(true);
+                },
+                actionOnRelease: entry =>
+                {
+                    entry.gameObject.SetActive(false);
+                },
+                actionOnDestroy: entry =>
+                {
+                    if (entry != null)
+                    {
+                        Destroy(entry.gameObject);
+                    }
+                },
+                collectionCheck: true,
+                defaultCapacity: 10,
+                maxSize: 50
+            );
+        }
+
+        void ReleaseAllActiveLobbyEntries()
+        {
+            foreach (var entry in _activeLobbyEntries)
+            {
+                if (entry != null)
+                {
+                    _lobbyEntryPool.Release(entry);
+                }
+            }
+            _activeLobbyEntries.Clear();
+        }
+
         void UpdateLobbiesUI(IList<ISessionInfo> sessions)
         {
-            for (var i = _lobbiesRoot.childCount - 1; i >= 0; i--)
-                Destroy(_lobbiesRoot.GetChild(i).gameObject);
+            ReleaseAllActiveLobbyEntries();
 
             foreach (var session in sessions)
             {
-                var lobbyPanel = Instantiate(_lobbyEntryPrefab, _lobbiesRoot);
-                lobbyPanel.Bind(session);
+                var lobbyEntry = _lobbyEntryPool.Get();
+                lobbyEntry.Bind(session);
+                _activeLobbyEntries.Add(lobbyEntry);
             }
         }
     }

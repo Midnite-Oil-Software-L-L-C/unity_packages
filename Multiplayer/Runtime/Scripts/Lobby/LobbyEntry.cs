@@ -26,10 +26,6 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _name.SetText(session.Name);
             _playerCount.SetText((session.MaxPlayers - session.AvailableSlots) + " / " + session.MaxPlayers);
 
-            if (_enableDebugLog)
-            {
-                Debug.Log($"LobbyEntry:Multiplayer-LobbyEntry.Bind(): Binding entry to session {session.Name}:{session.Id}, isLocked: {session.IsLocked}, available slots: {session.AvailableSlots}");
-            }
             if (session.AvailableSlots < 1 || session.IsLocked || string.IsNullOrEmpty(session.Id))
             {
                 _joinButton.interactable = false;
