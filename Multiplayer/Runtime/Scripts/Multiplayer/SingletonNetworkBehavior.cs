@@ -1,4 +1,3 @@
-using MidniteOilSoftware.Core;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,7 +8,9 @@ namespace MidniteOilSoftware.Multiplayer
         [SerializeField] protected bool _enableDebugLog;
         
         private static T _instance;
+#if !UNITY_WEBGL
         private static readonly object _lock = new();
+#endif
         private static bool _isApplicationQuitting;
 
         public static T Instance
@@ -21,15 +22,22 @@ namespace MidniteOilSoftware.Multiplayer
                     return null;
                 }
 
+#if UNITY_WEBGL
+                if (_instance) return _instance;
+
+                _instance = FindFirstObjectByType<T>();
+
+                return _instance ? _instance : CreateSingletonInstance();
+#else
                 lock (_lock)
                 {
                     if (_instance) return _instance;
 
-                    // Look for an existing instance
                     _instance = FindFirstObjectByType<T>();
 
                     return _instance ? _instance : CreateSingletonInstance();
                 }
+#endif
             }
         }
 
@@ -41,6 +49,7 @@ namespace MidniteOilSoftware.Multiplayer
             return _instance;
         }
 
+#if !UNITY_WEBGL
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         static void Initialize()
         {
@@ -49,14 +58,13 @@ namespace MidniteOilSoftware.Multiplayer
             Destroy(_instance);
             _instance = null;
         }
+#endif
         
-        // Ensure that the singleton instance is reset on application quit
         protected virtual void OnApplicationQuit()
         {
             _isApplicationQuitting = true;
         }
 
-        // Reset the quitting flag when a new instance is created
         public override void OnDestroy()
         {
             if (_instance == this)
@@ -67,10 +75,8 @@ namespace MidniteOilSoftware.Multiplayer
             base.OnDestroy();
         }
 
-        // Optional: Override Awake in subclasses to add initialization logic
         protected virtual void Awake()
         {
-            // Prevent multiple instances from existing
             if (!_instance)
             {
                 _instance = this as T;
