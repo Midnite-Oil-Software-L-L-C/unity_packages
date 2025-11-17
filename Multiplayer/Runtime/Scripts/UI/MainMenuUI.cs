@@ -22,7 +22,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
         void Start()
         {
             _mainMenuUI.SetActive(true);
-            _lobbyPanel.Initialize();
+
             _currentLobbyPanel.gameObject.SetActive(false);
 
             // New event subscriptions for the SessionManager
@@ -55,8 +55,18 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLoggedIn(string playerId, string playerName)
         {
+            Debug.Log($"{playerName} logged in with Player ID: {playerId}");
             _playerIdText.SetText(playerId);
             _playerNameText.SetText(playerName);
+            try
+            {
+                _lobbyPanel.Initialize();
+            }
+            catch (System.Exception ex)
+            {
+                // I want this shown in the browser developer tools console for WebGL builds
+                Debug.LogError($"Error initializing LobbyListPanel: {ex.Message}", this);
+            }
             ShowLobbyPanel();
         }
 

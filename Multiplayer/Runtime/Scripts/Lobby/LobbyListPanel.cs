@@ -24,6 +24,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 
         public void Initialize()
         {
+            Debug.Log("Initializing LobbyListPanel", this);
             InitializeObjectPool();
             
             _autoRefreshToggle.onValueChanged.RemoveAllListeners();
@@ -32,6 +33,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
             _hostButton.onClick.RemoveAllListeners();
             _hostButton.onClick.AddListener(() =>
             {
+                Debug.Log("LobbyListPanel:Multiplayer-Host button clicked");
                 SessionManager.Instance.StartSessionAsHost(AuthenticationManager.Instance.PlayerName + "'s Game");
             });
 
