@@ -75,11 +75,11 @@ namespace MidniteOilSoftware
             }
             catch (RelayServiceException e)
             {
-                if (_enableDebugLog) Debug.LogError($"SessionManager:Multiplayer-Failed to get Relay join code: {e}");
+                Debug.LogError($"SessionManager:Multiplayer-Failed to get Relay join code: {e}");
             }
             catch (Exception e)
             {
-                if (_enableDebugLog) Debug.LogError($"SessionManager:Multiplayer-Failed to create session: {e}");
+                Debug.LogError($"SessionManager:Multiplayer-Failed to create session: {e}");
             }
         }
 
