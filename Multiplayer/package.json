@@ -1,6 +1,6 @@
 {
   "name": "com.midniteoilsoftware.multiplayer",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "displayName": "Midnite Oil Software Multiplayer Boilerplate",
   "description": "Boilerplate for making multiplayer games in Unity using Netcode for GameObjects, Unity Gaming Services (Lobby, Relay), and authentication. Includes complete Othello sample game demonstrating turn-based multiplayer gameplay.",
   "category": "Utility",
