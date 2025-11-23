@@ -30,7 +30,7 @@ namespace MidniteOilSoftware
             if (!_gameSessionManager)
             {
                 _gameSessionManager = FindFirstObjectByType<GameSessionManager>();
-                if (!_gameSessionManager && _enableDebugLog)
+                if (!_gameSessionManager)
                 {
                     Debug.LogError("SessionManager:Multiplayer-No GameSessionManager found in scene, please add one or override InitializeSession in a derived class.");
                 }
@@ -40,20 +40,17 @@ namespace MidniteOilSoftware
             await AuthenticationService.Instance.SignInAnonymouslyAsync();
         }
 
-        public async Task<Dictionary<string, PlayerProperty>> GetPlayerProperties()
+        public Task<Dictionary<string, PlayerProperty>> GetPlayerProperties()
         {
-            var properties = await Task.Run(() =>
-            {
-                var playerName = AuthenticationManager.Instance.PlayerName;
-                var playerNameProperty = new PlayerProperty(playerName, VisibilityPropertyOptions.Member);
-                return new Dictionary<string, PlayerProperty> { { PlayerNamePropertyKey, playerNameProperty } };
-            });
-
-            return properties;
+            var playerName = AuthenticationManager.Instance.PlayerName;
+            var playerNameProperty = new PlayerProperty(playerName, VisibilityPropertyOptions.Member);
+            var properties = new Dictionary<string, PlayerProperty> { { PlayerNamePropertyKey, playerNameProperty } };
+            return Task.FromResult(properties);
         }
 
         public async void StartSessionAsHost(string sessionName)
         {
+            if (_enableDebugLog) Debug.Log($"SessionManager:Multiplayer-Creating session with name: {sessionName}. Calling GetPlayerProperties()");
             var playerProperties = await GetPlayerProperties();
             try
             {
@@ -66,6 +63,10 @@ namespace MidniteOilSoftware
                     PlayerProperties = playerProperties
                 };
 
+                if (_enableDebugLog)
+                {
+                    Debug.Log("SessionManager:Multiplayer-Calling CreateSessionAsync with Relay Network");
+                }
                 _activeSession = await MultiplayerService.Instance.CreateSessionAsync(options.WithRelayNetwork());
                 if (_enableDebugLog)
                 {

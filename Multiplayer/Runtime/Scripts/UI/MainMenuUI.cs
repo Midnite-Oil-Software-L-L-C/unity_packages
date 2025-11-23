@@ -37,7 +37,6 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLeftGame(LeftGameEvent e)
         {
-            Debug.Log($"Player left the game");
             if (SessionManager.Instance.ActiveSession != null)
             {
                 ShowCurrentLobby(SessionManager.Instance.ActiveSession);
@@ -55,7 +54,6 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLoggedIn(string playerId, string playerName)
         {
-            Debug.Log($"{playerName} logged in with Player ID: {playerId}");
             _playerIdText.SetText(playerId);
             _playerNameText.SetText(playerName);
             try

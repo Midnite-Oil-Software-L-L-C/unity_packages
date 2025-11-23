@@ -46,6 +46,11 @@ namespace MidniteOilSoftware.Core
             return _instance;
         }
 
+        public void EnableDebugLogging(bool enable)
+        {
+            _enableDebugLog = enable;
+        }
+
         // Using an Action to allow external classes to subscribe to application quitting event
         public static event Action OnApplicationQuittingEvent;
 
