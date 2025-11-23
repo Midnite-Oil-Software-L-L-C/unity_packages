@@ -15,6 +15,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
         [SerializeField] AuthenticationPanelUI _authenticationPanel;
         [SerializeField] LobbyListPanel _lobbyPanel;
         [SerializeField] CurrentLobbyPanel _currentLobbyPanel;
+        [SerializeField] GameObject _backgroundImage;
 
         [Header("Text Fields")] 
         [SerializeField] TMP_Text _playerIdText, _playerNameText, _statusText, _gameNameText;
@@ -22,6 +23,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
         void Start()
         {
             _mainMenuUI.SetActive(true);
+            _backgroundImage?.SetActive(true);
 
             _currentLobbyPanel.gameObject.SetActive(false);
 
@@ -37,6 +39,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLeftGame(LeftGameEvent e)
         {
+            Debug.Log($"Player left the game");
             if (SessionManager.Instance.ActiveSession != null)
             {
                 ShowCurrentLobby(SessionManager.Instance.ActiveSession);
@@ -54,6 +57,7 @@ namespace MidniteOilSoftware.Multiplayer.UI
 
         void PlayerLoggedIn(string playerId, string playerName)
         {
+            Debug.Log($"{playerName} logged in with Player ID: {playerId}");
             _playerIdText.SetText(playerId);
             _playerNameText.SetText(playerName);
             try

@@ -11,7 +11,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
 {
     public class CurrentLobbyPanel : MonoBehaviour
     {
-        [SerializeField] GameObject _gameNameComponent, _startingGamePanel;
+        [SerializeField] GameObject _gameNameComponent, _startingGamePanel, _mainMenuBackground;
         [SerializeField] DynamicInputFieldWithConfirmButton _editGameName;
         [SerializeField] TMP_Text _gameNameText, _playersCountText;
         [SerializeField] Transform _playersRoot;
@@ -175,6 +175,7 @@ namespace MidniteOilSoftware.Multiplayer.Lobby
            
             GameSessionManager.Instance.InitializeSession();
             _startingGamePanel.SetActive(false);
+            _mainMenuBackground?.SetActive(false);
             gameObject.SetActive(false);
         }
 
