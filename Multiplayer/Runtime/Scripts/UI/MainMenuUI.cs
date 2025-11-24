@@ -15,7 +15,6 @@ namespace MidniteOilSoftware.Multiplayer.UI
         [SerializeField] AuthenticationPanelUI _authenticationPanel;
         [SerializeField] LobbyListPanel _lobbyPanel;
         [SerializeField] CurrentLobbyPanel _currentLobbyPanel;
-        [SerializeField] GameObject _backgroundImage;
 
         [Header("Text Fields")] 
         [SerializeField] TMP_Text _playerIdText, _playerNameText, _statusText, _gameNameText;
@@ -23,8 +22,6 @@ namespace MidniteOilSoftware.Multiplayer.UI
         void Start()
         {
             _mainMenuUI.SetActive(true);
-            _backgroundImage?.SetActive(true);
-
             _currentLobbyPanel.gameObject.SetActive(false);
 
             // New event subscriptions for the SessionManager
