@@ -1,116 +1,72 @@
 using UnityEditor;
-using UnityEditor.PackageManager;
 using UnityEngine;
 using System.Reflection;
 
 namespace MidniteOilSoftware.Multiplayer.Editor
 {
-    [InitializeOnLoad]
-    public static class TMPAutoImporter
+    public static class TMPManualImporter
     {
-        private const string TMPSettingsAssetPath = "Assets/TextMesh Pro/Resources/TMP Settings.asset";
-        private const string TMPExamplesFontPath = "Assets/TextMesh Pro/Fonts/Bangers-Regular SDF.asset";
-
-        static TMPAutoImporter()
+        [MenuItem("Midnite Oil Software/Multiplayer/Import TMP Essential Resources")]
+        public static void ImportTMPEssentials()
         {
-            UnityEditor.PackageManager.Events.registeredPackages += OnRegisteredPackages;
-            EditorApplication.delayCall += CheckAndImportTMPResources;
-        }
-
-        private static void OnRegisteredPackages(PackageRegistrationEventArgs args)
-        {
-            foreach (var packageInfo in args.added)
+            var tmproAssembly = GetTMPAssembly();
+            if (tmproAssembly == null)
             {
-                if (packageInfo.name is not ("com.unity.textmeshpro" or "com.midniteoilsoftware.multiplayer")) continue;
-                EditorApplication.delayCall += CheckAndImportTMPResources;
+                Debug.LogError("[Midnite Oil Multiplayer] TextMesh Pro assembly not found. Please ensure TextMesh Pro is installed.");
                 return;
             }
+
+            Debug.Log("[Midnite Oil Multiplayer] Importing TextMesh Pro Essential Resources...");
+            InvokeTMPImport(tmproAssembly, "ImportProjectResourcesMenu", "TMP Essential Resources");
         }
 
-        private static void CheckAndImportTMPResources()
+        [MenuItem("Midnite Oil Software/Multiplayer/Import TMP Examples & Extras")]
+        public static void ImportTMPExamples()
         {
-            Assembly tmproAssembly = null;
+            var tmproAssembly = GetTMPAssembly();
+            if (tmproAssembly == null)
+            {
+                Debug.LogError("[Midnite Oil Multiplayer] TextMesh Pro assembly not found. Please ensure TextMesh Pro is installed.");
+                return;
+            }
+
+            Debug.Log("[Midnite Oil Multiplayer] Importing TextMesh Pro Examples & Extras...");
+            InvokeTMPImport(tmproAssembly, "ImportExamplesContentMenu", "TMP Examples & Extras");
+        }
+
+        static Assembly GetTMPAssembly()
+        {
             try
             {
-                tmproAssembly = System.Reflection.Assembly.Load("Unity.TextMeshPro.Editor");
+                return Assembly.Load("Unity.TextMeshPro.Editor");
             }
             catch (System.IO.FileNotFoundException)
             {
-                return;
-            }
-
-            if (tmproAssembly == null) return;
-
-            bool essentialsImported = AssetDatabase.LoadAssetAtPath<Object>(TMPSettingsAssetPath) != null;
-            bool examplesImported = AssetDatabase.LoadAssetAtPath<Object>(TMPExamplesFontPath) != null;
-
-            if (!essentialsImported)
-            {
-                Debug.Log("[Midnite Oil Multiplayer] Importing TextMesh Pro Essential Resources...");
-                ImportTMPEssentials(tmproAssembly);
-            }
-
-            if (!examplesImported)
-            {
-                Debug.Log("[Midnite Oil Multiplayer] Importing TextMesh Pro Examples & Extras (including Bangers font)...");
-                ImportTMPExamples(tmproAssembly);
-            }
-
-            if (essentialsImported && examplesImported)
-            {
-                Debug.Log("[Midnite Oil Multiplayer] TextMesh Pro resources already imported.");
+                return null;
             }
         }
 
-        private static void ImportTMPEssentials(Assembly tmproAssembly)
+        static void InvokeTMPImport(Assembly tmproAssembly, string methodName, string resourceName)
         {
             try
             {
                 var tmproPackageUtilitiesType = tmproAssembly.GetType("TMPro.TMP_PackageUtilities");
                 if (tmproPackageUtilitiesType != null)
                 {
-                    var importMethod = tmproPackageUtilitiesType.GetMethod("ImportProjectResourcesMenu", 
+                    var importMethod = tmproPackageUtilitiesType.GetMethod(methodName, 
                         BindingFlags.Static | BindingFlags.Public);
                     if (importMethod != null)
                     {
                         importMethod.Invoke(null, null);
-                        Debug.Log("[Midnite Oil Multiplayer] TMP Essential Resources imported successfully!");
+                        Debug.Log($"[Midnite Oil Multiplayer] {resourceName} imported successfully!");
                         return;
                     }
                 }
-                Debug.LogWarning("[Midnite Oil Multiplayer] Could not auto-import TMP Essentials. " +
-                    "Please import manually via: Window > TextMeshPro > Import TMP Essential Resources");
+                Debug.LogWarning($"[Midnite Oil Multiplayer] Could not import {resourceName}. Method not found.");
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning($"[Midnite Oil Multiplayer] Error auto-importing TMP Essentials: {e.Message}. " +
-                    "Please import manually via: Window > TextMeshPro > Import TMP Essential Resources");
-            }
-        }
-
-        private static void ImportTMPExamples(Assembly tmproAssembly)
-        {
-            try
-            {
-                var tmproPackageUtilitiesType = tmproAssembly.GetType("TMPro.TMP_PackageUtilities");
-                if (tmproPackageUtilitiesType != null)
-                {
-                    var importMethod = tmproPackageUtilitiesType.GetMethod("ImportExamplesContentMenu", 
-                        BindingFlags.Static | BindingFlags.Public);
-                    if (importMethod != null)
-                    {
-                        importMethod.Invoke(null, null);
-                        Debug.Log("[Midnite Oil Multiplayer] TMP Examples & Extras imported successfully!");
-                        return;
-                    }
-                }
-                Debug.LogWarning("[Midnite Oil Multiplayer] Could not auto-import TMP Examples & Extras. " +
-                    "Please import manually via: Window > TextMeshPro > Import TMP Examples and Extras");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogWarning($"[Midnite Oil Multiplayer] Error auto-importing TMP Examples & Extras: {e.Message}. " +
-                    "Please import manually via: Window > TextMeshPro > Import TMP Examples and Extras");
+                Debug.LogError($"[Midnite Oil Multiplayer] Error importing {resourceName}: {e.Message}");
             }
         }
     }
