@@ -2,11 +2,12 @@
 
 ![Unity Version](https://img.shields.io/badge/Unity-6000.0%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Version](https://img.shields.io/badge/version-1.2.0-orange)
+![Version](https://img.shields.io/badge/version-1.8.0-orange)
 
 A complete multiplayer framework for Unity using [Netcode for GameObjects](https://docs-multiplayer.unity3d.com/netcode/current/about/), [Unity Gaming Services](https://unity.com/solutions/gaming-services) (Lobby, Relay, Authentication), and the Midnite Oil Software Core utilities.
 
 This package provides everything you need to quickly build turn-based and real-time multiplayer games with authentication, lobby management, session handling, and network synchronization.
+
 
 ## 📖 Table of Contents
 
@@ -52,8 +53,6 @@ This package provides everything you need to quickly build turn-based and real-t
 - [🙏 Credits](#-credits)
 - [💬 Support](#-support)
 - [🌟 Show Your Support](#-show-your-support)
-
-
 
 ## ✨ Features
 
@@ -125,17 +124,17 @@ The Multiplayer package requires the Core package. Install it first:
 2. In Unity Editor, go to `Edit > Project Settings > Services`
 3. Link your project to a Unity Organization
 4. Enable the following services in the [Unity Dashboard](https://dashboard.unity3d.com):
-   - **Authentication**
-   - **Lobby**
-   - **Relay**
+  - **Authentication**
+  - **Lobby**
+  - **Relay**
 
 ### 2. Configure Build Settings
 
 1. Go to `File > Build Settings`
 2. Add these scenes in order:
-   - `Packages/Midnite Oil Software Multiplayer Boilerplate/Runtime/Scenes/Bootstrapper.unity`
-   - `Packages/Midnite Oil Software Multiplayer Boilerplate/Runtime/Scenes/Main Menu.unity`
-   - (Optional) `Assets/Samples/.../Othello.unity` (if you imported the sample)
+  - `Packages/Midnite Oil Software Multiplayer Boilerplate/Runtime/Scenes/Bootstrapper.unity`
+  - `Packages/Midnite Oil Software Multiplayer Boilerplate/Runtime/Scenes/Main Menu.unity`
+  - (Optional) `Assets/Samples/.../Othello.unity` (if you imported the sample)
 
 ### 3. Run the Demo
 
@@ -277,13 +276,17 @@ sequenceDiagram
 ### Core Components
 
 #### Scene Management
+
 - **Bootstrapper** - Application entry point with automatic initialization
-  - `RuntimeInitializeOnLoadMethod` ensures scene loads before any other
   - Initializes Unity Services
   - Persists across scene loads (DontDestroyOnLoad)
+- **BootstrapperInitializer** - Non-generic initializer class
+  - `RuntimeInitializeOnLoadMethod` ensures Bootstrapper scene loads before any other
+  - Separated from generic base class to avoid Unity's generic class limitation
 - **ProjectSceneManager** - Scene loading and transition management
 
 #### Authentication
+
 - **AuthenticationManager** - Handles Unity Authentication (anonymous & username/password)
   - Singleton pattern for global access
   - Manages player ID and player name
@@ -293,6 +296,7 @@ sequenceDiagram
 - **UsernameAndPasswordAuthenticationDialog** - Account-based authentication dialog
 
 #### Session & Lobby Management
+
 - **SessionManager** - Create, join, and manage multiplayer sessions
   - Integration with Unity Lobby Service
   - Relay network allocation (NAT traversal)
@@ -303,6 +307,7 @@ sequenceDiagram
 - **LobbyPlayerPanel** - Display player status in lobbies
 
 #### Networking
+
 - **NetworkPlayer** - Base class for networked player representation
   - Extends NetworkBehaviour
   - Synchronized player properties
@@ -318,6 +323,7 @@ sequenceDiagram
 - **GameStarter** - Orchestrate game initialization
 
 #### Game Framework
+
 - **GameManager** - Base class for game state management with turn-based support
   - State machine implementation
   - Turn management
@@ -327,6 +333,9 @@ sequenceDiagram
 - **GameSessionInitializer** - Initialize game-specific session data
 - **GameSessionCleanup** - Clean up session resources
 - **SingletonNetworkBehavior** - Network-enabled singleton pattern
+  - **Important**: All instances should be placed in the Bootstrapper scene as NetworkObjects
+  - Scene-based initialization pattern - instances initialize when Bootstrapper scene loads
+  - Simple, cross-platform implementation without threading complexity
 
 #### Events
 
@@ -339,6 +348,7 @@ All events use struct-based design for zero heap allocation:
 - **PlayerTurnEndEvent** - Turn end notification
 
 #### UI Components
+
 - **MainMenuUI** - Main menu controller
 - **ConfirmOrCancel** - Reusable confirmation dialogs
 - **DynamicInputFieldWithConfirmButton** - Input with validation
@@ -350,6 +360,7 @@ All events use struct-based design for zero heap allocation:
 A fully functional multiplayer Othello (Reversi) game demonstrating all framework features:
 
 #### Features
+
 - ✅ Complete game logic with move validation
 - ✅ 8-directional chip flipping algorithm
 - ✅ Network-synchronized game board
@@ -361,32 +372,28 @@ A fully functional multiplayer Othello (Reversi) game demonstrating all framewor
 - ✅ Server-authoritative game state
 
 #### Components
+
 - **OthelloGameManager** - Extends GameManager for Othello-specific logic
   - Manages player chip colors using NetworkList
   - Tracks player pass state
   - Handles turn transitions and game over conditions
-  
 - **OthelloBoard** - Board logic and input handling
   - 8x8 grid procedural generation
   - Move validation (8-directional scanning)
   - Input System integration with raycasting
   - Network synchronization via RPCs
-  
 - **OthelloPlayer** - Player representation extending NetworkPlayer
   - Chip color assignment
   - Player-specific game state
-  
 - **Cell** - Board cell component
   - Position tracking (X, Y coordinates)
   - Chip reference management
   - Visual highlighting for valid/invalid moves
   - Material swapping for feedback
-  
 - **Chip** - Game piece with flip animation
   - Color property (Black/White)
   - Smooth flip animation
   - Visual representation
-  
 - **GameUI** - User interface controller
   - Turn indicator display
   - Real-time chip count tracking
@@ -807,6 +814,36 @@ NetworkVariable<Vector3> _position = new();
 // Use RPCs for large data or infrequent updates
 ```
 
+### Custom SingletonNetworkBehavior Components
+
+When creating your own network singleton managers, place them in the Bootstrapper scene:
+
+```csharp
+using MidniteOilSoftware.Multiplayer;
+using Unity.Netcode;
+
+public class MyCustomManager : SingletonNetworkBehavior<MyCustomManager>
+{
+    protected override void Awake()
+    {
+        base.Awake(); // Important: Call base.Awake()
+    }
+    
+    protected override void Start()
+    {
+        base.Start();
+        // Your initialization code here
+    }
+}
+```
+
+**Setup**:
+
+1. Create a GameObject in the Bootstrapper scene
+2. Add a `NetworkObject` component
+3. Add your custom `SingletonNetworkBehavior` component
+4. Access it anywhere via `MyCustomManager.Instance`
+
 ## 🤝 Dependencies
 
 This package automatically installs the following dependencies:
@@ -836,6 +873,7 @@ This package automatically installs the following dependencies:
 #### Players can't connect
 
 **Solution**: 
+
 1. Verify Relay service is enabled in Unity Dashboard
 2. Check that both players are authenticated
 3. Ensure firewall isn't blocking connections
@@ -843,12 +881,20 @@ This package automatically installs the following dependencies:
 #### Sample won't import
 
 **Solution**: 
+
 1. Verify Core package is installed first
 2. Update Package Manager cache: `Window > Package Manager > Advanced > Reset Packages to Defaults`
+
+#### "Method 'Initialize' is in a generic class" error
+
+This error occurred in v1.2.0 and earlier when building for non-WebGL platforms.
+
+**Solution**: Update to v1.3.0 or later, which moved `RuntimeInitializeOnLoadMethod` out of generic classes into dedicated initializer classes.
 
 ## 📚 Documentation
 
 ### Unity Documentation
+
 - [Netcode for GameObjects](https://docs-multiplayer.unity3d.com/netcode/current/about/)
 - [Unity Gaming Services](https://docs.unity.com/ugs/)
 - [Lobby Service](https://docs.unity.com/ugs/manual/lobby/manual/unity-lobby-service)
@@ -856,23 +902,97 @@ This package automatically installs the following dependencies:
 - [Authentication Service](https://docs.unity.com/ugs/manual/authentication/manual/intro-unity-authentication)
 
 ### Helpful Resources
+
 - [Netcode API Reference](https://docs.unity3d.com/Packages/com.unity.netcode.gameobjects@latest)
 - [NetworkVariable Guide](https://docs-multiplayer.unity3d.com/netcode/current/basics/networkvariable/)
 - [RPC Guide](https://docs-multiplayer.unity3d.com/netcode/current/advanced-topics/message-system/rpc/)
 
 ## 🔄 Version History
 
-### v1.2.0 (Current)
+### v1.8.0 (Current)
+
+- 🐛 **Fixed**: RuntimeInitializeOnLoad error on non-WebGL builds
+- ✨ **New**: `BootstrapperInitializer` - Non-generic initializer for scene loading
+- 🔧 **Changed**: Simplified `SingletonNetworkBehavior` - removed preprocessor directives
+- 📝 **Improved**: Architecture documentation and best practices
+
+### v1.2.0
+
 - ✅ Added Othello complete game sample
 - ✅ Added Core package dependency
 - ✅ Updated to latest Unity package versions
 - ✅ Improved documentation with examples
 
 ### v1.1.0
+
 - Initial release with multiplayer framework
 - Authentication system
 - Lobby and session management
 - Main menu and UI components
+
+## ⚙️ Technical Notes
+
+### Architecture: Scene-Based Singleton Initialization
+
+The multiplayer framework uses a **scene-based initialization pattern** that avoids Unity's generic class limitations.
+
+#### The Pattern
+
+All `SingletonNetworkBehavior` instances are placed in the **Bootstrapper scene** as GameObjects with NetworkObject components:
+
+```
+Bootstrapper Scene (loaded first)
+├── Network Manager (Unity Netcode)
+├── Player Registry (SingletonNetworkBehavior)
+├── Player Connections Manager (SingletonNetworkBehavior)
+└── Project Scene Manager (SingletonNetworkBehavior)
+```
+
+#### Initialization Flow
+
+1. **BootstrapperInitializer** (non-generic static class) uses `[RuntimeInitializeOnLoadMethod]` to load the Bootstrapper scene before any other scene
+2. When the scene loads, all GameObjects initialize through their `Awake()` methods
+3. Each `SingletonNetworkBehavior<T>` sets its static `Instance` reference in `Awake()`
+4. No separate initializer needed for network behaviors - they're already in the scene!
+
+#### Why This Works
+
+**Problem Solved**: Unity doesn't allow `[RuntimeInitializeOnLoadMethod]` in generic classes, which caused compilation errors in v1.2.0.
+
+**Solution**: 
+
+- Move scene loading to non-generic `BootstrapperInitializer` class ✅
+- Keep `SingletonNetworkBehavior<T>` simple without `[RuntimeInitializeOnLoadMethod]` ✅
+- All platforms use the same clean implementation ✅
+
+**Benefits**:
+
+- ✨ No preprocessor directives (`#if UNITY_WEBGL`)
+- ✨ No threading complexity
+- ✨ Simpler to understand and maintain
+- ✨ Works identically on all platforms
+
+#### Application Quitting
+
+The framework tracks application quitting state to prevent singleton recreation during shutdown:
+
+```csharp
+protected virtual void OnApplicationQuit()
+{
+    _isApplicationQuitting = true;
+}
+
+public static T Instance
+{
+    get
+    {
+        if (_isApplicationQuitting) return null;
+        // ... normal singleton logic
+    }
+}
+```
+
+This prevents errors when objects try to access singletons during Unity's shutdown sequence.
 
 ## 📝 License
 
@@ -881,7 +1001,7 @@ This project is licensed under the MIT License.
 ```
 MIT License
 
-Copyright (c) 2025 Midnite Oil Software L.L.C.
+Copyright (c) 2024 Midnite Oil Software L.L.C.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -907,15 +1027,18 @@ SOFTWARE.
 **Created by**: [Midnite Oil Software L.L.C.](https://github.com/Midnite-Oil-Software-L-L-C)
 
 **Built with**:
+
 - Unity Technologies - Unity Engine and Netcode for GameObjects
 - Unity Gaming Services - Authentication, Lobby, and Relay
 
-## 💬 Support
-- **Issues**: Report bugs or request features on our [GitHub Issues](https://github.com/Midnite-Oil-Software-L-L-C/
+## 💬 Support & Contributing
+
+- **Issues**: Report bugs or request features on our [GitHub Issues](https://github.com/Midnite-Oil-Software-L-L-C/unity_packages/issues)
 
 ## 🌟 Show Your Support
 
 If this package helped you build your multiplayer game, please consider:
+
 - ⭐ Starring the repository
 - 📢 Sharing it with other Unity developers
 - 💬 Providing feedback and suggestions

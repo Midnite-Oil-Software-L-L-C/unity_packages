@@ -3,14 +3,15 @@ using UnityEngine;
 
 namespace MidniteOilSoftware.Multiplayer
 {
+    /// <summary>
+    /// Generic singleton pattern for NetworkBehaviour components.
+    /// All instances should be placed in the Bootstrapper scene as NetworkObjects.
+    /// </summary>
     public class SingletonNetworkBehavior<T> : NetworkBehaviour where T : NetworkBehaviour
     {
         [SerializeField] protected bool _enableDebugLog;
         
         private static T _instance;
-#if !UNITY_WEBGL
-        private static readonly object _lock = new();
-#endif
         private static bool _isApplicationQuitting;
 
         public static T Instance
@@ -22,22 +23,11 @@ namespace MidniteOilSoftware.Multiplayer
                     return null;
                 }
 
-#if UNITY_WEBGL
                 if (_instance) return _instance;
 
                 _instance = FindFirstObjectByType<T>();
 
                 return _instance ? _instance : CreateSingletonInstance();
-#else
-                lock (_lock)
-                {
-                    if (_instance) return _instance;
-
-                    _instance = FindFirstObjectByType<T>();
-
-                    return _instance ? _instance : CreateSingletonInstance();
-                }
-#endif
             }
         }
 
@@ -48,17 +38,6 @@ namespace MidniteOilSoftware.Multiplayer
             DontDestroyOnLoad(singletonObject);
             return _instance;
         }
-
-#if !UNITY_WEBGL
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-        static void Initialize()
-        {
-            _isApplicationQuitting = false;
-            if (!_instance) return;
-            Destroy(_instance);
-            _instance = null;
-        }
-#endif
         
         protected virtual void OnApplicationQuit()
         {
@@ -69,7 +48,7 @@ namespace MidniteOilSoftware.Multiplayer
         {
             if (_instance == this)
             {
-                _isApplicationQuitting = true;
+                _instance = null;
             }
 
             base.OnDestroy();

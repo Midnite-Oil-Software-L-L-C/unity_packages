@@ -1,10 +1,14 @@
 ﻿using MidniteOilSoftware.Core;
 using Unity.Services.Core;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace MidniteOilSoftware.Multiplayer
 {
+    /// <summary>
+    /// Main bootstrapper for the multiplayer framework.
+    /// Initializes Unity Gaming Services and persists across scene loads.
+    /// The scene loading is handled by BootstrapperInitializer.
+    /// </summary>
     public class Bootstrapper : SingletonMonoBehaviour<Bootstrapper>
     {
         protected override void Awake()
@@ -19,14 +23,6 @@ namespace MidniteOilSoftware.Multiplayer
             base.Start();
             Application.runInBackground = true;
             await UnityServices.InitializeAsync();
-        }
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        static async void Init()
-        {
-            if (SceneManager.GetSceneByName("Bootstrapper").IsValid() == true) return;
-            Debug.Log("Loading Bootstrapper");
-            await SceneManager.LoadSceneAsync("Bootstrapper", LoadSceneMode.Single);
         }
     }
 }
