@@ -82,6 +82,8 @@ namespace MidniteOilSoftware.Core.Music
             _audioSource.volume = 0f;
             // Stop the audio source after the fade is complete.
             _audioSource.Stop();
+            // Reset the volume to the original value for future use.
+            _audioSource.volume = startVolume;
             // Clear the coroutine reference.
             _fadeCoroutine = null;
         }
