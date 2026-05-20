@@ -71,7 +71,7 @@ namespace MidniteOilSoftware.Core.Music
             _nextTrackTimer.OnTimerStop -= PlayNextTrack;
             _nextTrackTimer.Stop();
             _currentMusicGroup = GetMusicGroup(musicGroupName);
-            _loop = loopl;
+            _loop = loop;
             PlayNextTrack();
         }
 
