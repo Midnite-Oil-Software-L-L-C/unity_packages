@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using UnityEngine;
 using AudioSettings = MidniteOilSoftware.Core.Settings.AudioSettings;
 
@@ -63,11 +64,13 @@ namespace MidniteOilSoftware.Core.Music
         }
 #endif
 
-        public void PlayMusic(string musicGroupName)
+        public void PlayMusic(string musicGroupName, bool loop = false)
         {
             if (!MusicEnabled) return;
+            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
+            _nextTrackTimer.Stop();
             _currentMusicGroup = GetMusicGroup(musicGroupName);
-            PlayNextTrack();
+            PlayNextTrack(loop);
         }
 
         public void StopAllMusic()
@@ -96,14 +99,14 @@ namespace MidniteOilSoftware.Core.Music
             PlayNextTrack();
         }
         
-        void PlayNextTrack()
+        void PlayNextTrack(bool loop = false)
         {
             if (!MusicEnabled) return;
             var clip = _currentMusicGroup?.GetNextMusicClip();
             if (!clip) return;
             ToggleCurrentMix();
             _musicMixes[_currentMixIndex].PlayClip(clip);
-            StartNextTrackTimer(clip);
+            if (!loop) StartNextTrackTimer(clip);
         }
 
         void ToggleCurrentMix()
@@ -175,7 +178,7 @@ namespace MidniteOilSoftware.Core.Music
 
         void OnPlayMusicEvent(PlayMusicEvent playMusicEvent)
         {
-            PlayMusic(playMusicEvent.MusicGroupName);
+            PlayMusic(playMusicEvent.MusicGroupName, playMusicEvent.Loop);
         }
     }
 }
