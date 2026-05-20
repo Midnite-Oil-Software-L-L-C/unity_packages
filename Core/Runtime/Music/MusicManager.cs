@@ -20,6 +20,7 @@ namespace MidniteOilSoftware.Core.Music
         Action<StopAllMusicEvent> _stopAllMusicAction;
 
         bool _musicEnabled = true;
+        bool _loop = false;
 
         public bool MusicEnabled
         {
@@ -70,7 +71,8 @@ namespace MidniteOilSoftware.Core.Music
             _nextTrackTimer.OnTimerStop -= PlayNextTrack;
             _nextTrackTimer.Stop();
             _currentMusicGroup = GetMusicGroup(musicGroupName);
-            PlayNextTrack(loop);
+            _loop = loopl;
+            PlayNextTrack();
         }
 
         public void StopAllMusic()
@@ -99,14 +101,14 @@ namespace MidniteOilSoftware.Core.Music
             PlayNextTrack();
         }
         
-        void PlayNextTrack(bool loop = false)
+        void PlayNextTrack()
         {
             if (!MusicEnabled) return;
             var clip = _currentMusicGroup?.GetNextMusicClip();
             if (!clip) return;
             ToggleCurrentMix();
             _musicMixes[_currentMixIndex].PlayClip(clip);
-            if (!loop) StartNextTrackTimer(clip);
+            if (!_loop) StartNextTrackTimer(clip);
         }
 
         void ToggleCurrentMix()
