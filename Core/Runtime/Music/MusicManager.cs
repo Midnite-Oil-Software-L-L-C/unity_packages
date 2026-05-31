@@ -89,15 +89,17 @@ namespace MidniteOilSoftware.Core.Music
             _nextTrackTimer.Stop();
             _musicMixes[_currentMixIndex].FadeOut(fadeOutTime);
         }
-
+        
         public void EnableMusic(bool musicEnabled = true)
         {
-            MusicEnabled = musicEnabled;
-            if (!MusicEnabled)
+            if (!musicEnabled)
             {
-                StopAllMusic();
+                MusicEnabled = musicEnabled;
                 return;
             }
+
+            if (MusicEnabled) return;
+            MusicEnabled = musicEnabled;
             PlayNextTrack();
         }
         
