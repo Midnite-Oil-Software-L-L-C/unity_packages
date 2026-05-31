@@ -9,7 +9,7 @@ namespace MidniteOilSoftware.Core.Logging
     /// </summary>
     public static class GameLogger
     {
-        public static bool IsEnabled { get; private set; } = true;
+        public static bool IsEnabled { get; private set; } = false;
 
         [RuntimeInitializeOnLoadMethod]
         static void Initialize() => IsEnabled = true;
