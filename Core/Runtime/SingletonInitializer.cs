@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Linq;
+using MidniteOilSoftware.Core.Logging;
 
 namespace MidniteOilSoftware.Core
 {
@@ -38,22 +39,22 @@ namespace MidniteOilSoftware.Core
                                 if (onRuntimeInitializeMethod != null)
                                 {
                                     onRuntimeInitializeMethod.Invoke(instance, null);
-                                    Debug.Log($"SingletonInitializer successfully initialized singleton: {type.Name}");
+                                    GameLogger.Log("SingletonInitializer successfully initialized singleton: {0}", type.Name);
                                 }
                             }
                         }
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[SingletonInitializer] Failed to initialize singleton {type.Name}: {ex.Message}");
+                        GameLogger.LogError("[SingletonInitializer] Failed to initialize singleton {0}: {1}", type.Name, ex.Message);
                     }
                 }
                 
-                Debug.Log("All singleton initialization complete");
+                GameLogger.Log("All singleton initialization complete");
             }
             catch (Exception ex)
             {
-                Debug.LogError($"[SingletonInitializer] Critical error during singleton initialization: {ex.Message}");
+                GameLogger.LogError("[SingletonInitializer] Critical error during singleton initialization: {0}", ex.Message);
             }
         }
 
@@ -83,7 +84,7 @@ namespace MidniteOilSoftware.Core
                 catch (ReflectionTypeLoadException ex)
                 {
                     // Handle cases where some types can't be loaded
-                    Debug.LogWarning($"[SingletonInitializer] Could not load some types from assembly {assembly.FullName}: {ex.Message}");
+                    GameLogger.LogWarning("[SingletonInitializer] Could not load some types from assembly {0}: {1}", assembly.FullName, ex.Message);
                     
                     // Add the types that could be loaded
                     foreach (var type in ex.Types.Where(t => t != null && IsSingletonMonoBehaviour(t)))
@@ -93,7 +94,7 @@ namespace MidniteOilSoftware.Core
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogWarning($"[SingletonInitializer] Error loading types from assembly {assembly.FullName}: {ex.Message}");
+                    GameLogger.LogWarning("[SingletonInitializer] Error loading types from assembly {0}: {1}", assembly.FullName, ex.Message);
                 }
             }
             

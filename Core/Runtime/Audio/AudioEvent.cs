@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Audio;
 using Random = UnityEngine.Random;
+using MidniteOilSoftware.Core.Logging;
 
 namespace MidniteOilSoftware.Core.Audio
 {
@@ -30,8 +31,8 @@ namespace MidniteOilSoftware.Core.Audio
         {
             if (_debugMode)
             {
-                if (!_audioMixerGroup) Debug.LogError($"AudioMixerGroup is not assigned in AudioEvent: {name}", this);
-                Debug.Log($"Playing audio event: {name} with volume override: {volumeOverride}", this);
+                if (!_audioMixerGroup) GameLogger.LogError("AudioMixerGroup is not assigned in AudioEvent: {0}", name);
+                GameLogger.Log("Playing audio event: {0} with volume override: {1}", name, volumeOverride);
             }
             audioSource.outputAudioMixerGroup = _audioMixerGroup;
             audioSource.volume = volumeOverride ?? Random.Range(_volume._minValue, _volume._maxValue);

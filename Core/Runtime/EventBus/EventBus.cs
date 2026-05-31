@@ -50,7 +50,7 @@ namespace MidniteOilSoftware.Core
     
             if (_enableDebugLog)
             {
-                Debug.Log("EventBus runtime initialization complete", this);
+                GameLogger.Log("EventBus runtime initialization complete", this);
             }
     
             // Clear any existing event subscriptions on restart

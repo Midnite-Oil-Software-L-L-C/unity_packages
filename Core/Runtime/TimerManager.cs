@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
+using MidniteOilSoftware.Core.Logging;
 
 namespace MidniteOilSoftware.Core
 {
@@ -14,7 +15,7 @@ namespace MidniteOilSoftware.Core
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"Creating timer of type {typeof(T).Name} with initial value: {value}", this);
+                GameLogger.Log("Creating timer of type {0} with initial value: {1}", typeof(T).Name, value);
             }
             var pool = GetTimerPool<T>();
             var timer = pool.Get();
@@ -27,7 +28,7 @@ namespace MidniteOilSoftware.Core
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"Releasing timer of type {typeof(T).Name}. IsRunning={timer?.IsRunning}", this);
+                GameLogger.Log("Releasing timer of type {0}. IsRunning={1}", typeof(T).Name, timer?.IsRunning);
             }
             if (timer == null) return;
             if (!_timers.Contains(timer)) return;
@@ -42,7 +43,7 @@ namespace MidniteOilSoftware.Core
             {
                 if (_enableDebugLog)
                 {
-                    Debug.LogError($"Failed to release timer of type {typeof(T).Name}: {e.Message}", this);
+                    GameLogger.LogError("Failed to release timer of type {0}: {1}", typeof(T).Name, e.Message);
                 }
             }
         }
@@ -79,7 +80,7 @@ namespace MidniteOilSoftware.Core
             // TimerManager-specific initialization logic
             if (_enableDebugLog)
             {
-                Debug.Log("TimerManager runtime initialization complete", this);
+                GameLogger.Log("TimerManager runtime initialization complete", this);
             }
     
             _pools.Clear();

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using MidniteOilSoftware.Core.Logging;
 
 namespace MidniteOilSoftware.Core
 {
@@ -27,10 +28,10 @@ namespace MidniteOilSoftware.Core
             _debugMode = debugMode;
             if (_debugMode)
             {
-                Debug.Log($"Setting initial time to {value}. Previous InitialTime={InitialTime}");
+                GameLogger.Log("Setting initial time to {0}. Previous InitialTime={1}", value, InitialTime);
                 if (value < 0)
                 {
-                    Debug.LogError("Initial time cannot be negative. Setting to 0.");
+                    GameLogger.LogError("Initial time cannot be negative. Setting to 0.");
                     value = 0;
                 }
 
@@ -45,7 +46,7 @@ namespace MidniteOilSoftware.Core
             Time = InitialTime;
             if (_debugMode)
             {
-                Debug.Log($"Starting timer with initial time: {InitialTime}. IsRunning={IsRunning}");
+                GameLogger.Log("Starting timer with initial time: {0}. IsRunning={1}", InitialTime, IsRunning);
             }
             if (IsRunning) return;
             IsRunning = true;
@@ -56,7 +57,7 @@ namespace MidniteOilSoftware.Core
         {
             if (_debugMode)
             {
-                Debug.Log($"Stopping timer. IsRunning={IsRunning}. Time remaining={Time}. invokeStopEvent={invokeStopEvent}");
+                GameLogger.Log("Stopping timer. IsRunning={0}. Time remaining={1}. invokeStopEvent={2}", IsRunning, Time, invokeStopEvent);
             }
             if (!IsRunning) return;
             IsRunning = false;

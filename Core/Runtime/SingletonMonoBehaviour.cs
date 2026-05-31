@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using UnityEngine.Serialization;
+using MidniteOilSoftware.Core.Logging;
 
 namespace MidniteOilSoftware.Core
 {
@@ -79,7 +80,7 @@ namespace MidniteOilSoftware.Core
 
             if (_enableDebugLog)
             {
-                Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] Awake called on GameObject: {gameObject.name} (ID: {instanceId})");
+                GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Awake called on GameObject: {1} (ID: {2})", typeName, gameObject.name, instanceId);
             }
 
             // This is crucial for handling domain reload disabled
@@ -89,7 +90,7 @@ namespace MidniteOilSoftware.Core
 
                 if (_enableDebugLog)
                 {
-                    Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] Setting as singleton instance: {gameObject.name}");
+                    GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Setting as singleton instance: {1}", typeName, gameObject.name);
                 }
 
                 // Subscribe once to handle application quitting
@@ -102,7 +103,7 @@ namespace MidniteOilSoftware.Core
 
                 if (_enableDebugLog)
                 {
-                    Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] Current scene: '{sceneName}', attempting DontDestroyOnLoad");
+                    GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Current scene: '{1}', attempting DontDestroyOnLoad", typeName, sceneName);
                 }
 
                 if (sceneName != "DontDestroyOnLoad")
@@ -118,19 +119,20 @@ namespace MidniteOilSoftware.Core
                         dontDestroyInstances++;
                         if (_enableDebugLog)
                         {
-                            Debug.LogWarning($"SingletonMonoBehaviour:Core-[{typeName}] Found existing DontDestroyOnLoad instance: {instance.gameObject.name}");
+                            GameLogger.LogWarning("SingletonMonoBehaviour:Core-[{0}] Found existing DontDestroyOnLoad instance: {1}", typeName, instance.gameObject.name);
                         }
                     }
 
                     if (dontDestroyInstances > 0)
                     {
-                        Debug.LogError($"SingletonMonoBehaviour:Core-[{typeName}] Cannot call DontDestroyOnLoad - {dontDestroyInstances} instances already exist in DontDestroyOnLoad scene!");
+                        GameLogger.LogError("SingletonMonoBehaviour:Core-[{0}] Cannot call DontDestroyOnLoad - {1} instances already exist in DontDestroyOnLoad scene!",
+                            typeName, dontDestroyInstances);
                         return;
                     }
 
                     if (_enableDebugLog)
                     {
-                        Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] Calling DontDestroyOnLoad on {gameObject.name}");
+                        GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Calling DontDestroyOnLoad on {1}", typeName, gameObject.name);
                     }
                     #if UNITY_EDITOR
                     if (Application.isPlaying)
@@ -140,26 +142,26 @@ namespace MidniteOilSoftware.Core
 
                     if (_enableDebugLog)
                     {
-                        Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] Successfully called DontDestroyOnLoad");
+                        GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Successfully called DontDestroyOnLoad", typeName);
                     }
                 }
                 else if (_enableDebugLog)
                 {
-                    Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] GameObject already in DontDestroyOnLoad scene");
+                    GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] GameObject already in DontDestroyOnLoad scene", typeName);
                 }
             }
             else if (_instance != this)
             {
                 if (_enableDebugLog)
                 {
-                    Debug.LogWarning($"SingletonMonoBehaviour:Core-[{typeName}] Another instance exists. Destroying: {gameObject.name}");
+                    GameLogger.LogWarning("SingletonMonoBehaviour:Core-[{0}] Another instance exists. Destroying: {1}", typeName, gameObject.name);
                 }
 
                 Destroy(gameObject);
             }
             else if (_enableDebugLog)
             {
-                Debug.Log($"SingletonMonoBehaviour:Core-[{typeName}] This is the existing singleton instance");
+                GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] This is the existing singleton instance", typeName);
             }
         }
         
@@ -167,7 +169,7 @@ namespace MidniteOilSoftware.Core
         {
             if (_enableDebugLog)
             {
-                Debug.Log($"SingletonMonoBehaviour:Core-[{typeof(T)}] Singleton instance started.");
+                GameLogger.Log("SingletonMonoBehaviour:Core-[{0}] Singleton instance started.", typeof(T));
             }
         }
 
@@ -186,7 +188,7 @@ namespace MidniteOilSoftware.Core
             // Base implementation - can be overridden by derived classes
             if (_enableDebugLog)
             {
-                Debug.Log($"Runtime initializing {typeof(T).Name}", this);
+                GameLogger.Log("Runtime initializing {0}", typeof(T).Name);
             }
             // Resetting _isApplicationQuitting here is critical for domain reload disabled scenarios
             _isApplicationQuitting = false;
