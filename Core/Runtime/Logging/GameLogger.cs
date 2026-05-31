@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace MidniteOilSoftware.Core.Logging
 {
     /// <summary>
