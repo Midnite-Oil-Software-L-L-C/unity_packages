@@ -72,11 +72,15 @@ namespace MidniteOilSoftware.Core
 
         protected virtual void Awake()
         {
-            #if !UNITY_EDITOR
+#if !UNITY_EDITOR
             _enableDebugLog = false; // Disable debug logging in non-editor builds
-            #endif
+#endif
             var typeName = typeof(T).Name;
+#if UNITY_6000_5_OR_NEWER
+            var instanceId = gameObject.GetEntityId();
+#else
             var instanceId = gameObject.GetInstanceID();
+#endif
 
             if (_enableDebugLog)
             {
