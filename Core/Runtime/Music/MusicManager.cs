@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using UnityEngine;
 using AudioSettings = MidniteOilSoftware.Core.Settings.AudioSettings;
 
@@ -12,15 +11,17 @@ namespace MidniteOilSoftware.Core.Music
     {
         [SerializeField] List<MusicClipGroup> _musicClipGroups;
         [SerializeField] List<MusicMix> _musicMixes;
+        [Tooltip("Seconds the outgoing track fades out while the incoming track fades in.")]
+        [SerializeField, Min(0f)] float _crossfadeTime = 1f;
 
         int _currentMixIndex;
         [SerializeField] MusicClipGroup _currentMusicGroup;
         Timer _nextTrackTimer;
-        
+
         Action<StopAllMusicEvent> _stopAllMusicAction;
 
         bool _musicEnabled = true;
-        bool _loop = false;
+        bool _loop;
 
         public bool MusicEnabled
         {
@@ -33,99 +34,90 @@ namespace MidniteOilSoftware.Core.Music
             }
         }
 
+        bool HasMusicMixes => _musicMixes is { Count: > 0 };
+
 #if UNITY_EDITOR
         [ContextMenu("Play menu music")]
-        public void PlayMenuMusic()
-        {
-            PlayMusic("Menu Music");
-        }
+        public void PlayMenuMusic() => PlayMusic("Menu Music");
 
         [ContextMenu("Play game music")]
-        public void PlayGameMusic()
-        {
-            PlayMusic("Game Music");
-        }
+        public void PlayGameMusic() => PlayMusic("Game Music");
 
         [ContextMenu("Play game over music")]
-        public void PlayGameOverMusic()
-        {
-            PlayMusic("Game Over Music");
-        }
+        public void PlayGameOverMusic() => PlayMusic("Game Over Music");
 
         [ContextMenu("Stop all music")]
-        public void StopMusic()
-        {
-            StopAllMusic();
-        }
+        public void StopMusic() => StopAllMusic();
 
         [ContextMenu("Fade out music")]
-        public void FadeOutMusicCommand()
-        {
-            FadeOutMusic();
-        }
+        public void FadeOutMusicCommand() => FadeOutMusic();
 #endif
 
         public void PlayMusic(string musicGroupName, bool loop = false)
         {
             if (!MusicEnabled) return;
-            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
-            _nextTrackTimer.Stop();
-            _currentMusicGroup = GetMusicGroup(musicGroupName);
+            var musicGroup = GetMusicGroup(musicGroupName);
+            if (!musicGroup)
+            {
+                Debug.LogWarning($"MusicManager: no MusicClipGroup named '{musicGroupName}'. Keeping current music.", this);
+                return;
+            }
+
+            StopNextTrackTimer();
+            _currentMusicGroup = musicGroup;
             _loop = loop;
             PlayNextTrack();
         }
 
         public void StopAllMusic()
         {
-            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
-            _nextTrackTimer.Stop();
+            StopNextTrackTimer();
+            if (!HasMusicMixes) return;
             foreach (var musicMix in _musicMixes) musicMix.Stop();
         }
 
         public void FadeOutMusic(float fadeOutTime = 1f)
         {
-            if (_musicMixes == null || _musicMixes.Count == 0) return;
-            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
-            _nextTrackTimer.Stop();
+            if (!HasMusicMixes) return;
+            StopNextTrackTimer();
             _musicMixes[_currentMixIndex].FadeOut(fadeOutTime);
         }
-        
+
         public void EnableMusic(bool musicEnabled = true)
         {
             if (!musicEnabled)
             {
-                MusicEnabled = musicEnabled;
+                MusicEnabled = false;
                 return;
             }
 
             if (MusicEnabled) return;
-            MusicEnabled = musicEnabled;
+            MusicEnabled = true;
             PlayNextTrack();
         }
-        
+
+        // Crossfades: the outgoing mix fades out while the incoming mix fades in. The outgoing track is always
+        // stopped, so nothing depends on AudioMixer snapshots (unsupported on WebGL) to silence it.
         void PlayNextTrack()
         {
-            if (!MusicEnabled) return;
-            var clip = _currentMusicGroup?.GetNextMusicClip();
+            if (!MusicEnabled || !HasMusicMixes || !_currentMusicGroup) return;
+            var clip = _currentMusicGroup.GetNextMusicClip();
             if (!clip) return;
+            _musicMixes[_currentMixIndex].FadeOut(_crossfadeTime);
             ToggleCurrentMix();
-            _musicMixes[_currentMixIndex].PlayClip(clip);
+            _musicMixes[_currentMixIndex].PlayClip(clip, _crossfadeTime);
             if (!_loop) StartNextTrackTimer(clip);
         }
 
-        void ToggleCurrentMix()
-        {
-            _currentMixIndex = _currentMixIndex == 0 ? 1 : 0;
-        }
+        void ToggleCurrentMix() => _currentMixIndex = (_currentMixIndex + 1) % _musicMixes.Count;
 
-        MusicClipGroup GetMusicGroup(string musicGroupName)
-        {
-            return _musicClipGroups?.FirstOrDefault(group => group.name == musicGroupName);
-        }
+        MusicClipGroup GetMusicGroup(string musicGroupName) =>
+            _musicClipGroups?.FirstOrDefault(group => group && group.name == musicGroupName);
 
         void InitializeMusicMixes()
         {
             AudioSettings.Instance.LoadAudioSettings();
+            if (!HasMusicMixes) return;
             foreach (var musicMix in _musicMixes) musicMix.Initialize(Instance);
         }
 
@@ -149,16 +141,22 @@ namespace MidniteOilSoftware.Core.Music
             ReleaseNextTrackTimer();
         }
 
-        void CreateNextTrackTimer()
-        {
-            _nextTrackTimer = TimerManager.Instance.CreateTimer<CountdownTimer>();
-        }
+        void CreateNextTrackTimer() => _nextTrackTimer = TimerManager.Instance.CreateTimer<CountdownTimer>();
 
+        // Start the crossfade so it finishes as the current clip ends.
         void StartNextTrackTimer(AudioClip clip)
         {
-            _nextTrackTimer.OnTimerStop -= PlayNextTrack; 
+            if (_nextTrackTimer == null) return;
+            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
             _nextTrackTimer.OnTimerStop += PlayNextTrack;
-            _nextTrackTimer.Start(clip.length - 10f);
+            _nextTrackTimer.Start(Mathf.Max(0f, clip.length - _crossfadeTime));
+        }
+
+        void StopNextTrackTimer()
+        {
+            if (_nextTrackTimer == null) return;
+            _nextTrackTimer.OnTimerStop -= PlayNextTrack;
+            _nextTrackTimer.Stop();
         }
 
         void SubscribeToEvents()
@@ -180,9 +178,7 @@ namespace MidniteOilSoftware.Core.Music
             TimerManager.Instance?.ReleaseTimer<CountdownTimer>(_nextTrackTimer);
         }
 
-        void OnPlayMusicEvent(PlayMusicEvent playMusicEvent)
-        {
+        void OnPlayMusicEvent(PlayMusicEvent playMusicEvent) =>
             PlayMusic(playMusicEvent.MusicGroupName, playMusicEvent.Loop);
-        }
     }
 }

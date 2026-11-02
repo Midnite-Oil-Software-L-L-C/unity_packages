@@ -4,88 +4,104 @@ using UnityEngine.Audio;
 
 namespace MidniteOilSoftware.Core.Music
 {
+    /// <summary>
+    /// One music "deck" (AudioSource routed to a mixer group). MusicManager crossfades between two of these.
+    /// Fades are driven by AudioSource.volume rather than AudioMixer snapshots because the Web (WebGL)
+    /// platform does not support snapshot transitions — only group volume.
+    /// </summary>
     [CreateAssetMenu(fileName = "MusicMix", menuName = "Midnite Oil Software/Core/Create Music Mix")]
     public class MusicMix : ScriptableObject
     {
         [SerializeField] AudioMixerGroup _mixerGroup;
-        [SerializeField] AudioMixerSnapshot _audioMixerSnapshot;
+        [Tooltip("AudioSource volume (0-1) this mix plays at. Use the mixer group to set the level in dB.")]
+        [SerializeField, Range(0f, 1f)] float _volume = 1f;
 
         AudioSource _audioSource;
         Coroutine _fadeCoroutine;
         MusicManager _musicManager;
 
+        public bool IsPlaying => _audioSource && _audioSource.isPlaying;
+
         public void Initialize(MusicManager instance)
         {
             _musicManager = instance;
+            _fadeCoroutine = null;
             var audioSourceGameObject = new GameObject($"{name} Audio Source");
             audioSourceGameObject.transform.SetParent(_musicManager.transform);
             _audioSource = audioSourceGameObject.AddComponent<AudioSource>();
             _audioSource.loop = true;
             _audioSource.playOnAwake = false;
             _audioSource.spatialBlend = 0f;
-            _audioSource.volume = 1f;
+            _audioSource.volume = _volume;
             _audioSource.outputAudioMixerGroup = _mixerGroup;
         }
 
-        public void PlayClip(AudioClip clip)
+        /// <summary>
+        /// Plays the clip on this mix, optionally fading in from silence.
+        /// </summary>
+        public void PlayClip(AudioClip clip, float fadeInTime = 0f)
         {
-            if (_fadeCoroutine != null)
-            {
-                MusicManager.Instance.StopCoroutine(_fadeCoroutine);
-            }
+            if (!_audioSource) return;
+            StopFade();
             _audioSource.clip = clip;
+            _audioSource.volume = fadeInTime > 0f ? 0f : _volume;
             _audioSource.Play();
-            _audioMixerSnapshot.TransitionTo(1f);
+            if (fadeInTime <= 0f) return;
+            _fadeCoroutine = _musicManager.StartCoroutine(FadeCoroutine(_volume, fadeInTime, false));
         }
 
         public void Stop()
         {
+            if (!_audioSource) return;
+            StopFade();
             _audioSource.Stop();
+            _audioSource.volume = _volume;
         }
 
         /// <summary>
-        /// Fades out the audio volume over a specified duration using linear interpolation.
+        /// Fades the audio out over the given duration, then stops the AudioSource.
         /// </summary>
         /// <param name="duration">The time in seconds over which to fade out the audio.</param>
-        /// <returns>A reference to the running Coroutine.</returns>
+        /// <returns>The running Coroutine, or null if nothing needed to fade.</returns>
         public Coroutine FadeOut(float duration)
         {
-            // Stop any existing fade coroutine to prevent conflicts.
-            if (_fadeCoroutine != null)
+            if (!IsPlaying) return null;
+            StopFade();
+            if (duration <= 0f)
             {
-                MusicManager.Instance.StopCoroutine(_fadeCoroutine);
+                Stop();
+                return null;
             }
-            // Start the new fade coroutine and store its reference.
-            _fadeCoroutine = MusicManager.Instance.StartCoroutine(FadeOutCoroutine(duration));
+
+            _fadeCoroutine = _musicManager.StartCoroutine(FadeCoroutine(0f, duration, true));
             return _fadeCoroutine;
         }
 
-        private IEnumerator FadeOutCoroutine(float duration)
+        void StopFade()
         {
-            // Get the starting volume of the audio source.
-            float startVolume = _audioSource.volume;
-            float elapsedTime = 0f;
+            if (_fadeCoroutine == null) return;
+            if (_musicManager) _musicManager.StopCoroutine(_fadeCoroutine);
+            _fadeCoroutine = null;
+        }
+
+        // Unscaled time so fades still complete while the game is paused (Time.timeScale = 0).
+        IEnumerator FadeCoroutine(float targetVolume, float duration, bool stopWhenDone)
+        {
+            var startVolume = _audioSource.volume;
+            var elapsedTime = 0f;
 
             while (elapsedTime < duration)
             {
-                // Increment elapsed time by the time since the last frame.
-                elapsedTime += Time.deltaTime;
-                // Calculate the interpolation value (t) between 0 and 1.
-                float t = elapsedTime / duration;
-                // Use Lerp to smoothly decrease the volume from the start volume to 0.
-                _audioSource.volume = Mathf.Lerp(startVolume, 0f, t);
-                // Wait for the next frame before continuing the loop.
+                elapsedTime += Time.unscaledDeltaTime;
+                _audioSource.volume = Mathf.Lerp(startVolume, targetVolume, elapsedTime / duration);
                 yield return null;
             }
 
-            // Ensure the volume is exactly 0 at the end.
-            _audioSource.volume = 0f;
-            // Stop the audio source after the fade is complete.
-            _audioSource.Stop();
-            // Reset the volume to the original value for future use.
-            _audioSource.volume = startVolume;
-            // Clear the coroutine reference.
+            _audioSource.volume = targetVolume;
             _fadeCoroutine = null;
+            if (!stopWhenDone) yield break;
+            _audioSource.Stop();
+            _audioSource.volume = _volume;
         }
     }
 }
